@@ -1,36 +1,75 @@
-import React, { useState , useEffect}   from "react";
-import { useNavigate} from "react-router-dom";
-import { Link } from 'react-router-dom';
-import { Box, Flex, Text } from '@chakra-ui/react';
+import React from "react";
+import {
+  AppBar,
+  Toolbar,
+  CssBaseline,
+  Typography,
+  makeStyles,
+  useTheme,
+  useMediaQuery,
+  Button,
+} from "@material-ui/core";
+import { Link } from "react-router-dom";
+import DrawerComponent from "./Drawer";
 
-function NavBar() {
+const useStyles = makeStyles((theme) => ({
+  navlinks: {
+    marginLeft: theme.spacing(10),
+    display: "flex",
+  },
+  logo: {
+    flexGrow: "1",
+    cursor: "pointer",
+    fontWeight:"bold",
+  },
+  link: {
+    textDecoration: "none",
+    color: "white",
+    fontSize: "17px",
+    fontWeight:"bold",
+    marginLeft: theme.spacing(5),
+    "&:hover": {
+      color: "purple",
+    },
+  },
+  appbar: {
+    backgroundColor : "#11061c",
+    fontWeight:"bold",
+  }
+}));
+
+function Navbar() {
+  const classes = useStyles();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   return (
-    <Box position="fixed" top={0} left={0} right={0}>
-      <Flex
-        as="nav"
-        display="flex"
-        placeItems="center"
-        wrap="wrap"
-        w="100%"
-        p={7}
-        margin="0 auto"
-        h="15vh"
-        backgroundColor="rgb(22,14,40)"
-      >
-        <Box display="flex" justifyContent="center" placeItems="center" width="100%" fontSize="25" fontFamily="revert" letterSpacing="2px">       
-            <Text color="white" paddingLeft="15px" paddingRight="15px"  >
+    <AppBar position="static" className={classes.appbar}>
+      <CssBaseline />
+      <Toolbar>
+        <Typography variant="h4" className={classes.logo}>
+          Ivkoneli  
+        </Typography>
+        {isMobile ? (
+          <DrawerComponent />
+        ) : (
+          <div className={classes.navlinks}>
+            <Button className={classes.link}>
+              Home
+            </Button>
+            <Button className={classes.link}>
+              About
+            </Button>
+            <Button  className={classes.link}>
               Projects
-            </Text>
-            <Text color="white" paddingLeft="15px" paddingRight="15px">
-              About Me
-            </Text>
-            <Text color="white" paddingLeft="15px" paddingRight="15px">
+            </Button>
+            <Button className={classes.link}>
               Contact
-            </Text>      
-        </Box>
-      </Flex>
-    </Box>
+            </Button>
+          </div>
+        )}
+      </Toolbar>
+    </AppBar>
   );
-};
-
-export default NavBar;
+}
+export default Navbar;
