@@ -1,18 +1,28 @@
+import { useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { PerspectiveCamera, ContactShadows } from '@react-three/drei'
+import { useThree } from '@react-three/fiber'
+import { ContactShadows } from '@react-three/drei'
 import Cube from './Cube'
+
+// Positions the camera and calls lookAt — Drei's PerspectiveCamera only sets
+// position, it never calls lookAt, so the camera stares off into empty space.
+function CameraSetup() {
+  const { camera } = useThree()
+  useEffect(() => {
+    camera.position.set(14, 18, 14)
+    camera.fov = 20
+    camera.near = 0.1
+    camera.far = 200
+    camera.lookAt(0, 0, 0)
+    camera.updateProjectionMatrix()
+  }, [camera])
+  return null
+}
 
 export default function Scene() {
   return (
     <Canvas shadows>
-      {/* Telephoto-style camera: low FOV gives clean near-orthographic 2.5D look */}
-      <PerspectiveCamera
-        makeDefault
-        fov={20}
-        position={[14, 18, 14]}
-        near={0.1}
-        far={200}
-      />
+      <CameraSetup />
 
       {/* Lighting */}
       <ambientLight intensity={0.4} />
