@@ -1,0 +1,173 @@
+================================================================================
+  PORTFOLIO WEBSITE — BLOXORZ-INSPIRED 3D PORTFOLIO
+  Tech Plan & Architecture Reference
+================================================================================
+
+CONCEPT
+-------
+A Bloxorz-inspired portfolio where a cube rolls across a tile grid using arrow
+keys. Normal tiles are 1x1 (cube size). Project tiles are 3x3 and visually
+distinct (glow, color). When the cube lands on a project tile, a panel appears
+with project info. Camera is perspective, slightly tilted birds-eye (2.5D feel).
+
+
+TECH STACK
+----------
+  @react-three/fiber       — Three.js renderer for React (R3F)
+  @react-three/drei        — Helpers: Html, Camera, Lights, useTexture, etc.
+  zustand                  — Game state management (cube pos, active project)
+  @react-spring/three      — Smooth cube roll/pivot animations
+  vite                     — Build tool + dev server
+  gh-pages                 — One-command GitHub Pages deploy
+
+Why R3F over raw Three.js:
+  The <Html> component from Drei lets you attach real React UI (project cards,
+  links, screenshots) directly inside the 3D scene, auto-projected to 3D coords.
+  Doing this in raw Three.js requires manually syncing DOM to canvas — messy.
+  React also helps manage UI state (modals, transitions) cleanly.
+
+
+CAMERA
+------
+  - Perspective camera, NOT orthographic
+  - FOV: 15–25° (low FOV = telephoto = near-orthographic look, clean 2.5D)
+  - Tilt: ~50–60° down from horizontal
+  - Slight rotation (~30–45° on Y axis) for that isometric-ish angle
+  - Camera follows cube smoothly (lerp/spring on position)
+  - Drei's <PerspectiveCamera> or manual camera ref
+
+
+TILE SYSTEM
+-----------
+  - Grid defined as a 2D array in layout.js (0 = empty, 1 = normal, 2 = project)
+  - Normal tiles: 1x1, flat, subtle color/material
+  - Project tiles: 3x3, slightly elevated or glowing, distinct material
+  - Tiles rendered from grid data — no physics needed, pure transform math
+  - Gap/void tiles simply render nothing (falling off = reset, optional)
+
+
+CUBE ROLLING MECHANIC
+---------------------
+  The key to the Bloxorz feel is PIVOT-BASED rotation, not sliding.
+
+  Each move:
+    1. Determine direction (arrow key)
+    2. Find the pivot edge (bottom edge of cube in that direction)
+    3. Rotate cube 90° around that pivot edge
+    4. Snap cube to new grid position after animation completes
+
+  This is pure transform math — very Unity-familiar.
+  Use @react-spring/three to tween the rotation smoothly (~150–200ms).
+  Block input during animation to prevent move stacking.
+
+
+PROJECT TILE INTERACTION
+------------------------
+  When cube lands on a 3x3 project tile:
+    - Trigger Zustand state: activeProject = projectData
+    - <Html> panel fades in (positioned above/beside the tile)
+    - Panel contains: project name, description, tech stack, links, screenshot
+    - Escape or rolling off closes the panel
+    - For GitHub Pages projects: direct link or iframe
+    - For other projects: external link + description is cleanest
+
+
+NON-GITHUB PROJECTS
+-------------------
+  Don't use iframes for non-GitHub projects — they often block embedding.
+  Instead: modal/overlay panel with screenshots, description, and an
+  "Open Project" button that links externally. Clean and universally compatible.
+
+
+PROJECT ARCHITECTURE
+--------------------
+
+  src/
+  ├── components/
+  │   ├── Scene.jsx           ← R3F Canvas, camera setup, lighting
+  │   ├── Cube.jsx            ← The rolling cube + keyboard input handler
+  │   ├── Grid.jsx            ← Renders all tiles from layout data
+  │   ├── Tile.jsx            ← Individual 1x1 tile mesh + material
+  │   ├── ProjectTile.jsx     ← 3x3 tile with special material/glow effect
+  │   └── ProjectPanel.jsx    ← <Html> overlay panel for project info
+  │
+  ├── hooks/
+  │   ├── useKeyboard.js      ← Arrow key event listener → direction state
+  │   └── useCubeMovement.js  ← Pivot rotation logic + grid position tracking
+  │
+  ├── store/
+  │   └── gameStore.js        ← Zustand: cubePos, activeProject, isAnimating
+  │
+  └── data/
+      ├── layout.js           ← 2D array defining the tile map
+      └── projects.js         ← Project metadata (name, desc, link, image, tags)
+
+
+SHADER / VISUAL EFFECTS (no code — concepts & directions)
+----------------------------------------------------------
+  Given HLSL/GLSL background, these are within reach and will elevate the look:
+
+  1. TILE EDGE GLOW (project tiles)
+     Fragment shader on project tile material. Sample UV distance from edges,
+     apply emissive pulse using sin(time). Same concept as Unity emissive rim.
+
+  2. CUBE FACE SHADER
+     Custom ShaderMaterial on the cube. Could show a subtle grid pattern or
+     scanline effect on faces. Animate on landing (flash/pulse).
+
+  3. GRID FLOOR / INFINITE PLANE
+     Classic infinite grid shader — screenspace UV, fwidth for anti-aliased
+     lines. Fades with distance. Very common in Three.js, direct GLSL port
+     from Shadertoy patterns you likely already know.
+
+  4. VOID / EMPTY SPACE
+     Fog or depth-based darkening below the tile level. Simple uniform in a
+     custom material, lerp between tile color and void color by world Y.
+
+  5. CUBE LANDING SHOCKWAVE
+     On landing: expand a ring mesh outward from impact point, animate UV
+     offset and opacity in fragment shader. Exact same approach as Unity VFX
+     shockwaves, just in GLSL.
+
+  6. PROJECT TILE PORTAL EFFECT
+     On the 3x3 tile surface: scrolling noise texture, distortion using
+     sin/cos UV warping. Shadertoy-style — you'll feel right at home.
+
+  7. AMBIENT OCCLUSION HINT (fake, baked)
+     Darken tile edges near the cube shadow using a decal or a soft shadow
+     plane. Or use R3F's <ContactShadows> from Drei for zero-effort soft shadows.
+
+  8. POST-PROCESSING
+     @react-three/postprocessing (wrapper for three/examples/jsm/postprocessing)
+     Bloom on emissive materials (tile glow, cube edges)
+     Subtle chromatic aberration for style
+     Vignette for depth/focus
+     These are drag-and-drop in R3F, but understanding the underlying
+     EffectComposer / RenderPass chain is worth knowing.
+
+  In Three.js: ShaderMaterial takes vertexShader and fragmentShader as strings.
+  Your GLSL from Shadertoy ports almost directly — main() becomes the entry,
+  uniforms passed via the uniforms object, iTime → uTime, iResolution → uRes.
+
+
+GITHUB PAGES DEPLOY
+-------------------
+  1. vite.config.js: set base: '/your-repo-name/'
+  2. npm install --save-dev gh-pages
+  3. package.json scripts:
+       "predeploy": "npm run build"
+       "deploy": "gh-pages -d dist"
+  4. npm run deploy → live at username.github.io/your-repo-name
+
+
+NOTES
+-----
+  - Keep the tile map hand-crafted (not procedural) — you want intentional
+    layout that guides the player toward projects naturally.
+  - Add a subtle idle animation to the cube (slight bob or breathing scale).
+  - Consider a brief "intro" animation when the page loads — cube drops onto
+    the grid from above, tiles snap in one by one.
+  - Mobile: arrow keys won't work on touch — consider swipe detection or
+    on-screen arrow buttons as a fallback (Drei's <Html> makes this easy).
+
+================================================================================
