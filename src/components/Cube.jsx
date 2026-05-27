@@ -3,6 +3,7 @@ import { useSpring, animated } from '@react-spring/three'
 import useGameStore from '../store/gameStore'
 import useKeyboard from '../hooks/useKeyboard'
 import { LAYOUT, ROWS, COLS, tileToWorld, CUBE_START } from '../data/layout'
+import { findProjectAtTile } from '../data/projects'
 
 // ── constants ────────────────────────────────────────────────────────────────
 const TILE_Y    = 0.05   // top face of a tile (tile height 0.1, centered at y=0)
@@ -19,8 +20,9 @@ const [SX, , SZ] = tileToWorld(CUBE_START.col, CUBE_START.row)
 
 // ── component ─────────────────────────────────────────────────────────────────
 export default function Cube() {
-  const setIsAnimating = useGameStore(s => s.setIsAnimating)
-  const setCubePos     = useGameStore(s => s.setCubePos)
+  const setIsAnimating   = useGameStore(s => s.setIsAnimating)
+  const setCubePos       = useGameStore(s => s.setCubePos)
+  const setActiveProject = useGameStore(s => s.setActiveProject)
 
   // react-spring manages ALL transform state.
   // api.set()   → instant jump  (no animation, used for position/offset resets)
@@ -29,7 +31,7 @@ export default function Cube() {
     pivotPos:   [SX, CUBE_CY, SZ],  // world position of the pivot group
     meshOffset: [0,  0,       0 ],  // mesh position inside the pivot group
     rotation:   [0,  0,       0 ],  // pivot group rotation (only this animates)
-    config: { tension: 280, friction: 40 }, // crisp roll, no bounce
+    config: { tension: 600, friction: 40 }, // crisp roll, no bounce
   }))
 
   const move = useCallback((dc, dr) => {
@@ -81,10 +83,16 @@ export default function Cube() {
         api.set({ rotation:   [0,  0,       0 ] })
 
         setCubePos({ col: nextCol, row: nextRow })
+        // Show panel if landing on a project tile, clear if leaving one
+        setActiveProject(
+          LAYOUT[nextRow][nextCol] === 2
+            ? findProjectAtTile(nextCol, nextRow)
+            : null
+        )
         setIsAnimating(false)
       },
     })
-  }, [api, setCubePos, setIsAnimating])
+  }, [api, setCubePos, setIsAnimating, setActiveProject])
 
   useKeyboard(move)
 

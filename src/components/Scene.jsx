@@ -4,6 +4,7 @@ import { useThree } from '@react-three/fiber'
 import { ContactShadows } from '@react-three/drei'
 import Cube from './Cube'
 import Grid from './Grid'
+import ProjectPanel from './ProjectPanel'
 
 function CameraSetup() {
   const { camera } = useThree()
@@ -33,6 +34,7 @@ export default function Scene() {
 
       <Grid />
       <Cube />
+      <ProjectPanel />
 
       <ContactShadows
         position={[0, 0.06, 0]}
