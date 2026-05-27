@@ -24,12 +24,31 @@ export default function Scene() {
     <Canvas shadows>
       <CameraSetup />
 
-      <ambientLight intensity={0.4} />
+      {/* ── Lighting ─────────────────────────────────────────────────────────
+          Three sources so every face of every object gets shaped light:
+
+          1. hemisphereLight   — soft gradient from sky above to ground below.
+             Fills shadows without flattening them. Works on ALL meshes.
+
+          2. directionalLight  — main key light (top-right-front). Creates the
+             bright highlight and cast shadows.
+
+          3. directionalLight  — fill light (opposite side, cooler/dimmer).
+             Softens the shadowed faces so they're dark but not black.
+      ──────────────────────────────────────────────────────────────────────── */}
+      <hemisphereLight
+        args={['#1e1b4b', '#0a0a12', 0.7]}
+      />
       <directionalLight
         position={[10, 20, 10]}
-        intensity={1.2}
+        intensity={1.4}
         castShadow
         shadow-mapSize={[2048, 2048]}
+      />
+      <directionalLight
+        position={[-8, 6, -8]}
+        intensity={0.35}
+        color="#a5b4fc"
       />
 
       <Grid />
@@ -44,7 +63,8 @@ export default function Scene() {
         far={2}
       />
 
-      <fog attach="fog" args={['#0a0a0f', 18, 40]} />
+      {/* Fog pushed back so foreground objects aren't washed out */}
+      <fog attach="fog" args={['#0a0a0f', 24, 55]} />
     </Canvas>
   )
 }
