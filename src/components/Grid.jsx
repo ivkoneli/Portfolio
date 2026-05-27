@@ -37,6 +37,7 @@ export default function Grid() {
                 key={`proj-${colIdx}-${rowIdx}`}
                 tileOrigin={{ col: colIdx, row: rowIdx }}
                 active={isActive}
+                project={project}
               />
             )
           }
