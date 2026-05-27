@@ -1,72 +1,80 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { RoundedBox, Edges, Text } from '@react-three/drei'
+import { RoundedBox, Edges, Text, Line } from '@react-three/drei'
 import { tileToWorld } from '../data/layout'
 
-// ── tile geometry ─────────────────────────────────────────────────────────────
-const TILE_H  = 0.5    // half the cube's height
-const HALF_H  = 0.25
-// GROUP_Y = −0.10 → tile top at world y=0.15 (elevated 0.10 above normal tiles at 0.05)
-// cube bottom stays at 0.05 so only the bottom 0.10 of the cube clips into the top — barely visible
-const GROUP_Y = -0.10
+// ── tile geometry ──────────────────────────────────────────────────────────────
+const TILE_H  = 0.80                    // pedestal height (cube = 1.0 for reference)
+const HALF_H  = TILE_H / 2             // 0.40
+const GROUP_Y = 0.15 - HALF_H          // -0.25 → tile top stays at world y = 0.15
 
-// ── text/chip layout ──────────────────────────────────────────────────────────
-//  rotation [-PI/2, 0, PI/4]:
-//    Step 1  Rz(PI/4) first  → text right  = (+0.707, 0, -0.707)  = camera right
-//    Step 2  Ry(0)           → no change
-//    Step 3  Rx(-PI/2) last  → text normal = (0, 1, 0)             = faces up ✓
-//    Text "up" direction     = (−0.707, 0, −0.707)                 = away from camera ✓
-const TEXT_ROT = [-Math.PI / 2, 0, Math.PI / 4]
+// ── text rotation ──────────────────────────────────────────────────────────────
+// Lies flat on tile surface, reads along world +X (grid edge direction)
+const TEXT_ROT = [-Math.PI / 2, 0, 0]
 
-// local Y inside the group — just above the tile's top face
-const TEXT_Y = HALF_H + 0.015
+// Local Y just above tile top face
+const TEXT_Y = HALF_H + 0.02           // 0.42 → world y = 0.17 (above tile top)
 
-// ── chip constants ────────────────────────────────────────────────────────────
-const CHIP_FONT  = 0.10    // font size
-const CHIP_H     = 0.17    // chip height along camera-up direction on the tile
-const CHIP_THICK = 0.010   // depth perpendicular to tile (nearly flush)
-const CHIP_GAP   = 0.12    // gap between chips
-const CHAR_W     = 0.072   // approx world-width per character at CHIP_FONT
+// ── chip constants ─────────────────────────────────────────────────────────────
+const CHIP_FONT  = 0.20
+const CHIP_GAP   = 0.14
+const CHAR_W     = 0.12     // world-width per character at CHIP_FONT=0.20
+const CHIP_PAD_X = 0.12
+const CHIP_PAD_Y = 0.07
 
 function chipWidth(tag) {
-  return tag.length * CHAR_W + 0.22   // + left/right padding
+  return tag.length * CHAR_W + CHIP_PAD_X * 2
+}
+const CHIP_H = CHIP_FONT + CHIP_PAD_Y * 2   // total chip height (local Y = world -Z)
+
+// ── rounded rect line points (in local XY plane) ───────────────────────────────
+function roundedRectPoints(w, h, r = 0.06, segs = 8) {
+  const hw = w / 2 - r
+  const hh = h / 2 - r
+  const pts = []
+
+  const corners = [
+    { cx:  hw, cy:  hh, start: 0               },   // bottom-right
+    { cx: -hw, cy:  hh, start: Math.PI / 2     },   // bottom-left
+    { cx: -hw, cy: -hh, start: Math.PI         },   // top-left
+    { cx:  hw, cy: -hh, start: Math.PI * 3 / 2 },   // top-right
+  ]
+
+  for (const { cx, cy, start } of corners) {
+    for (let s = 0; s <= segs; s++) {
+      const a = start + (s / segs) * (Math.PI / 2)
+      pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a), 0])
+    }
+  }
+  pts.push([...pts[0]])   // close the loop
+  return pts
 }
 
-// Camera-right unit vector in the tile's local (= world) XZ plane.
-// Camera is at [14, 18, 14] → right direction = (+X, −Z) normalised.
-const CR = 0.707   // cos/sin of 45°
-
-// ── chip strip ────────────────────────────────────────────────────────────────
+// ── chip strip ─────────────────────────────────────────────────────────────────
 function TechChips({ tags }) {
   const widths = tags.map(chipWidth)
   const totalW = widths.reduce((s, w) => s + w, 0) + (tags.length - 1) * CHIP_GAP
-
-  // Starting cursor so chips are centred along the camera-right axis
   let cursor = -totalW / 2
 
-  // Base world-local position: lower part of tile (toward camera = +X,+Z in XZ)
-  const bx = 0.18, bz = 0.18
-
   return tags.map((tag, i) => {
-    const w  = widths[i]
-    const cx = cursor + w / 2          // offset along camera-right axis
-    cursor  += w + CHIP_GAP
-
-    // Translate along camera-right (CR, 0, -CR) in local space
-    const px = bx + cx * CR
-    const pz = bz - cx * CR
+    const w   = widths[i]
+    const cx  = cursor + w / 2
+    cursor   += w + CHIP_GAP
+    const pts = roundedRectPoints(w, CHIP_H)
 
     return (
-      <group key={tag} position={[px, TEXT_Y, pz]} rotation={TEXT_ROT}>
-        {/* Thin rounded-rect outline lying flat on the tile */}
-        <RoundedBox args={[w, CHIP_THICK, CHIP_H]} radius={0.05} smoothness={3}>
-          <meshBasicMaterial transparent opacity={0} />
-          <Edges color="#c084fc" />
-        </RoundedBox>
+      <group key={tag} position={[cx, TEXT_Y, 0.45]} rotation={TEXT_ROT}>
 
-        {/* Tag label — positioned just above the chip surface in local Z (= world Y) */}
+        {/* Explicit rounded-rect outline via Line — always visible */}
+        <Line
+          points={pts}
+          color="#c084fc"
+          lineWidth={1.5}
+        />
+
+        {/* Label — same flat approach as the title */}
         <Text
-          position={[0, 0, CHIP_THICK / 2 + 0.003]}
+          position={[0, 0, 0.002]}
           fontSize={CHIP_FONT}
           color="#c084fc"
           anchorX="center"
@@ -74,12 +82,13 @@ function TechChips({ tags }) {
         >
           {tag}
         </Text>
+
       </group>
     )
   })
 }
 
-// ── main component ────────────────────────────────────────────────────────────
+// ── main component ─────────────────────────────────────────────────────────────
 export default function ProjectTile({ tileOrigin, active, project }) {
   const meshRef = useRef()
 
@@ -106,22 +115,22 @@ export default function ProjectTile({ tileOrigin, active, project }) {
         castShadow
       >
         <meshStandardMaterial
-          color="#5b21b6"
+          color="#6d28d9"
           emissive="#7c3aed"
-          emissiveIntensity={0.06}
-          roughness={0.2}
-          metalness={0.55}
+          emissiveIntensity={0.05}
+          roughness={0.55}
+          metalness={0.10}
         />
         <Edges color="#f0abfc" threshold={15} />
       </RoundedBox>
 
       {project && (
         <>
-          {/* Project name — upper part of tile from camera's viewpoint */}
+          {/* Title — upper area (far side = -Z = upper in screen) */}
           <Text
-            position={[-0.14, TEXT_Y, -0.14]}
+            position={[0, TEXT_Y, -0.42]}
             rotation={TEXT_ROT}
-            fontSize={0.26}
+            fontSize={0.40}
             color="#ffffff"
             anchorX="center"
             anchorY="middle"
@@ -131,7 +140,7 @@ export default function ProjectTile({ tileOrigin, active, project }) {
             {project.name}
           </Text>
 
-          {/* Outlined tech chips — lower part of tile */}
+          {/* Tech chips — lower area (near side = +Z = lower in screen) */}
           <TechChips tags={project.tech} />
         </>
       )}

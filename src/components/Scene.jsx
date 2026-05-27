@@ -37,17 +37,21 @@ export default function Scene() {
              Softens the shadowed faces so they're dark but not black.
       ──────────────────────────────────────────────────────────────────────── */}
       <hemisphereLight
-        args={['#1e1b4b', '#0a0a12', 0.7]}
+        args={['#1e1b4b', '#0a0a12', 0.35]}
       />
+      {/* Key light — upper-right of camera view.
+          Shadow travels in (-1,0,+1) world direction = camera-left,
+          away from the project tile, clearly from the dark face. */}
       <directionalLight
-        position={[10, 20, 10]}
+        position={[14, 20, -14]}
         intensity={1.4}
         castShadow
         shadow-mapSize={[2048, 2048]}
       />
+      {/* Fill — from camera-left side to lift the +Z face out of full black */}
       <directionalLight
-        position={[-8, 6, -8]}
-        intensity={0.35}
+        position={[-10, 6, 14]}
+        intensity={0.30}
         color="#a5b4fc"
       />
 

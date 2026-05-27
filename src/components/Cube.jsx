@@ -31,7 +31,7 @@ export default function Cube() {
     pivotPos:   [SX, CUBE_CY, SZ],  // world position of the pivot group
     meshOffset: [0,  0,       0 ],  // mesh position inside the pivot group
     rotation:   [0,  0,       0 ],  // pivot group rotation (only this animates)
-    config: { tension: 600, friction: 40 }, // crisp roll, no bounce
+    config: { tension: 800, friction: 40 }, // crisp roll, no bounce
   }))
 
   const move = useCallback((dc, dr) => {
@@ -100,7 +100,7 @@ export default function Cube() {
     <animated.group position={spring.pivotPos} rotation={spring.rotation}>
       <animated.mesh position={spring.meshOffset} castShadow>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="#6c63ff" roughness={0.3} metalness={0.4} />
+        <meshStandardMaterial color="#6c63ff" roughness={0.55} metalness={0.05} />
       </animated.mesh>
     </animated.group>
   )

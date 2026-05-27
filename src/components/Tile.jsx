@@ -7,9 +7,8 @@ export default function Tile({ position }) {
   return (
     <mesh position={position} receiveShadow>
       <boxGeometry args={[0.96, 0.1, 0.96]} />
-      <meshStandardMaterial color="#0b1622" roughness={0.9} metalness={0.1} />
-      {/* Neon blue border — bloom post-processing (Day 9) will make this glow */}
-      <Edges color="#00c8ff" threshold={15} />
+      <meshStandardMaterial color="#00c8ff" roughness={0.85} metalness={0.05} />
+      <Edges color="#000000" threshold={15} />
     </mesh>
   )
 }
