@@ -1,23 +1,22 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { RoundedBox, Edges, Html } from '@react-three/drei'
+import { RoundedBox, Edges, Text } from '@react-three/drei'
 import { tileToWorld } from '../data/layout'
 
-const TILE_H    = 0.96   // 3× the original 0.32
-const HALF_H    = TILE_H / 2   // 0.48
-const GROUP_Y   = 0.05 - HALF_H  // −0.43 → keeps top face at y=0.05 (same as normal tiles)
+// Half the cube height (cube = 1 unit tall)
+const TILE_H = 0.5
+const HALF_H = TILE_H / 2  // 0.25
 
-const chipStyle = {
-  display:      'inline-block',
-  border:       '1px solid #c084fc',
-  color:        '#c084fc',
-  borderRadius: '999px',
-  padding:      '2px 10px',
-  fontSize:     '11px',
-  fontWeight:   500,
-  letterSpacing:'0.04em',
-  whiteSpace:   'nowrap',
-}
+// Group Y = 0 → tile centre at y=0 → top face at y=+0.25
+// Normal tiles top at y=0.05, so this pedestal rises 0.20 above the floor.
+// Cube bottom stays at y=0.05 — it sits slightly inside the top of the
+// pedestal, which is intentional and barely noticeable in a stylised scene.
+const GROUP_Y = 0
+
+// Text rotation: −90° X lays it flat, +45° Y turns it to face the camera
+// (camera is at [14,18,14] = northeast corner, so text "up" → SW = −X,−Z)
+const TEXT_ROT = [-Math.PI / 2, Math.PI / 4, 0]
+const TEXT_Y   = HALF_H + 0.02  // just above the tile top in group-local space
 
 export default function ProjectTile({ tileOrigin, active, project }) {
   const meshRef = useRef()
@@ -25,11 +24,9 @@ export default function ProjectTile({ tileOrigin, active, project }) {
   useFrame(({ clock }) => {
     if (!meshRef.current) return
     const t = clock.elapsedTime
-    // Keep emissive LOW so directional light controls the 3-D shading.
-    // Idle: barely there. Active: subtle breathing glow.
     meshRef.current.material.emissiveIntensity = active
-      ? 0.22 + Math.sin(t * 3) * 0.1
-      : 0.06
+      ? 0.25 + Math.sin(t * 3) * 0.1  // breathe when cube is on it
+      : 0.06                            // subtle idle glow
   })
 
   const [cx, , cz] = tileToWorld(tileOrigin.col + 1, tileOrigin.row + 1)
@@ -37,13 +34,10 @@ export default function ProjectTile({ tileOrigin, active, project }) {
   return (
     <group position={[cx, GROUP_Y, cz]}>
 
-      {/* Tall rounded-box body.
-          A lighter purple base + low emissive lets the directional light
-          create proper highlight / shadow on each face → reads as 3-D.      */}
       <RoundedBox
         ref={meshRef}
         args={[2.96, TILE_H, 2.96]}
-        radius={0.09}
+        radius={0.06}
         smoothness={4}
         receiveShadow
         castShadow
@@ -55,47 +49,40 @@ export default function ProjectTile({ tileOrigin, active, project }) {
           roughness={0.2}
           metalness={0.55}
         />
-        {/* Bright edge rim — #f0abfc is a high-contrast light-pink-purple;
-            far more visible against dark scene than a deeper purple.         */}
         <Edges color="#f0abfc" threshold={15} />
       </RoundedBox>
 
-      {/* Text lying flat ON the tile surface.
-          <Html transform> renders the div as a real 3-D plane so it rotates
-          with the scene. rotation X = −90° makes it face upward.
-          scale converts CSS px → world units (0.01 → 100 px = 1 world unit). */}
+      {/* Project name — <Text> is real 3-D geometry, always visible,
+          no CSS scale tricks needed. Lies flat on the tile surface.     */}
       {project && (
-        <Html
-          transform
-          position={[0, HALF_H + 0.015, 0]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          scale={0.01}
-          center
-          style={{ pointerEvents: 'none' }}
-        >
-          <div style={{
-            width:      '240px',
-            textAlign:  'center',
-            fontFamily: "'Segoe UI', system-ui, sans-serif",
-            userSelect: 'none',
-          }}>
-            <p style={{
-              margin:     '0 0 9px',
-              fontSize:   '28px',
-              fontWeight: 700,
-              color:      '#ffffff',
-              letterSpacing: '-0.01em',
-              whiteSpace: 'nowrap',
-            }}>
-              {project.name}
-            </p>
-            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {project.tech.map(tag => (
-                <span key={tag} style={chipStyle}>{tag}</span>
-              ))}
-            </div>
-          </div>
-        </Html>
+        <>
+          <Text
+            position={[0, TEXT_Y, -0.25]}
+            rotation={TEXT_ROT}
+            fontSize={0.28}
+            color="#ffffff"
+            anchorX="center"
+            anchorY="middle"
+            maxWidth={2.5}
+            textAlign="center"
+          >
+            {project.name}
+          </Text>
+
+          {/* Tech tags — joined with dots, lighter purple */}
+          <Text
+            position={[0, TEXT_Y, 0.28]}
+            rotation={TEXT_ROT}
+            fontSize={0.13}
+            color="#c084fc"
+            anchorX="center"
+            anchorY="middle"
+            maxWidth={2.5}
+            textAlign="center"
+          >
+            {project.tech.join('  ·  ')}
+          </Text>
+        </>
       )}
     </group>
   )
