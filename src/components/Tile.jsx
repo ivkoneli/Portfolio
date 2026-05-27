@@ -1,0 +1,15 @@
+import { Edges } from '@react-three/drei'
+
+// A single 1×1 grid tile.
+// Tile geometry is 0.96×0.1×0.96 so there's a small gap between tiles,
+// which makes each tile's neon border fully visible (no overlapping edges).
+export default function Tile({ position }) {
+  return (
+    <mesh position={position} receiveShadow>
+      <boxGeometry args={[0.96, 0.1, 0.96]} />
+      <meshStandardMaterial color="#0b1622" roughness={0.9} metalness={0.1} />
+      {/* Neon blue border — bloom post-processing (Day 9) will make this glow */}
+      <Edges color="#00c8ff" threshold={15} />
+    </mesh>
+  )
+}
