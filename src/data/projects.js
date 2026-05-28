@@ -7,7 +7,63 @@ export const PROJECTS = [
     description: 'Classic TicTacToe built in Unity. Two-player local multiplayer with clean UI.',
     tech: ['Unity 2D', 'C#'],
     demoUrl: 'https://ivkoneli.github.io/TicTacToe/',
-    tileOrigin: { col: 1, row: 1 }, // occupies cols 1-3, rows 1-3
+    tileOrigin: { col: 1, row: 1 },
+    theme: {
+      hex: '#38bdf8',        // sky blue
+      rgb: '56, 189, 248',
+      tileDark: '#071528',
+      tileEmissive: '#0c2a52',
+      edge: '#7dd3fc',
+      text: '#bae6fd',
+    },
+  },
+  {
+    id: 'project-2',
+    name: '???',
+    description: 'Coming soon.',
+    tech: ['Coming Soon'],
+    demoUrl: '',
+    tileOrigin: { col: 15, row: 1 },
+    theme: {
+      hex: '#f59e0b',        // amber
+      rgb: '245, 158, 11',
+      tileDark: '#1c0e00',
+      tileEmissive: '#3d1f00',
+      edge: '#fcd34d',
+      text: '#fde68a',
+    },
+  },
+  {
+    id: 'project-3',
+    name: '???',
+    description: 'Coming soon.',
+    tech: ['Coming Soon'],
+    demoUrl: '',
+    tileOrigin: { col: 15, row: 14 },
+    theme: {
+      hex: '#10b981',        // emerald
+      rgb: '16, 185, 129',
+      tileDark: '#021a0e',
+      tileEmissive: '#044d29',
+      edge: '#6ee7b7',
+      text: '#a7f3d0',
+    },
+  },
+  {
+    id: 'project-4',
+    name: '???',
+    description: 'Coming soon.',
+    tech: ['Coming Soon'],
+    demoUrl: '',
+    tileOrigin: { col: 1, row: 14 },
+    theme: {
+      hex: '#f43f5e',        // rose
+      rgb: '244, 63, 94',
+      tileDark: '#1a0610',
+      tileEmissive: '#4c0519',
+      edge: '#fda4af',
+      text: '#fecdd3',
+    },
   },
 ]
 

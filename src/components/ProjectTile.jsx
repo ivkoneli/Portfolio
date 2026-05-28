@@ -1,96 +1,26 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { RoundedBox, Edges, Text, Line } from '@react-three/drei'
+import { RoundedBox, Edges, Html } from '@react-three/drei'
 import { tileToWorld } from '../data/layout'
+import useGameStore from '../store/gameStore'
 
 // ── tile geometry ──────────────────────────────────────────────────────────────
-const TILE_H  = 0.80                    // pedestal height (cube = 1.0 for reference)
-const HALF_H  = TILE_H / 2             // 0.40
-const GROUP_Y = 0.15 - HALF_H          // -0.25 → tile top stays at world y = 0.15
+const TILE_H  = 0.80
+const HALF_H  = TILE_H / 2
+const GROUP_Y = 0.15 - HALF_H   // tile top at world y ≈ 0.15
 
-// ── text rotation ──────────────────────────────────────────────────────────────
-// Lies flat on tile surface, reads along world +X (grid edge direction)
-const TEXT_ROT = [-Math.PI / 2, 0, 0]
+// Light sits above the tile to cast down onto the surface.
+const LIGHT_Y = HALF_H + 0.55  // local y = 0.95, above tile top face
 
-// Local Y just above tile top face
-const TEXT_Y = HALF_H + 0.02           // 0.42 → world y = 0.17 (above tile top)
+// Card anchor Y in local space.
+const CARD_Y  = HALF_H
 
-// ── chip constants ─────────────────────────────────────────────────────────────
-const CHIP_FONT  = 0.20
-const CHIP_GAP   = 0.14
-const CHAR_W     = 0.12     // world-width per character at CHIP_FONT=0.20
-const CHIP_PAD_X = 0.12
-const CHIP_PAD_Y = 0.07
+// scale: 1 CSS px = CARD_SCALE world units.
+const CARD_SCALE = 0.5
 
-function chipWidth(tag) {
-  return tag.length * CHAR_W + CHIP_PAD_X * 2
-}
-const CHIP_H = CHIP_FONT + CHIP_PAD_Y * 2   // total chip height (local Y = world -Z)
-
-// ── rounded rect line points (in local XY plane) ───────────────────────────────
-function roundedRectPoints(w, h, r = 0.06, segs = 8) {
-  const hw = w / 2 - r
-  const hh = h / 2 - r
-  const pts = []
-
-  const corners = [
-    { cx:  hw, cy:  hh, start: 0               },   // bottom-right
-    { cx: -hw, cy:  hh, start: Math.PI / 2     },   // bottom-left
-    { cx: -hw, cy: -hh, start: Math.PI         },   // top-left
-    { cx:  hw, cy: -hh, start: Math.PI * 3 / 2 },   // top-right
-  ]
-
-  for (const { cx, cy, start } of corners) {
-    for (let s = 0; s <= segs; s++) {
-      const a = start + (s / segs) * (Math.PI / 2)
-      pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a), 0])
-    }
-  }
-  pts.push([...pts[0]])   // close the loop
-  return pts
-}
-
-// ── chip strip ─────────────────────────────────────────────────────────────────
-function TechChips({ tags }) {
-  const widths = tags.map(chipWidth)
-  const totalW = widths.reduce((s, w) => s + w, 0) + (tags.length - 1) * CHIP_GAP
-  let cursor = -totalW / 2
-
-  return tags.map((tag, i) => {
-    const w   = widths[i]
-    const cx  = cursor + w / 2
-    cursor   += w + CHIP_GAP
-    const pts = roundedRectPoints(w, CHIP_H)
-
-    return (
-      <group key={tag} position={[cx, TEXT_Y, 0.45]} rotation={TEXT_ROT}>
-
-        {/* Explicit rounded-rect outline via Line — always visible */}
-        <Line
-          points={pts}
-          color="#c084fc"
-          lineWidth={1.5}
-        />
-
-        {/* Label — same flat approach as the title */}
-        <Text
-          position={[0, 0, 0.002]}
-          fontSize={CHIP_FONT}
-          color="#c084fc"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {tag}
-        </Text>
-
-      </group>
-    )
-  })
-}
-
-// ── main component ─────────────────────────────────────────────────────────────
 export default function ProjectTile({ tileOrigin, active, project }) {
-  const meshRef = useRef()
+  const meshRef      = useRef()
+  const setDetailProject = useGameStore(s => s.setDetailProject)
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return
@@ -102,10 +32,16 @@ export default function ProjectTile({ tileOrigin, active, project }) {
 
   const [cx, , cz] = tileToWorld(tileOrigin.col + 1, tileOrigin.row + 1)
 
+  // All colors come from the project theme; fall back to purple if no project.
+  const theme       = project?.theme
+  const rgb         = theme?.rgb   ?? '168, 85, 247'
+  const borderAlpha = active ? 0.85 : 0.45
+  const glowAlpha   = active ? 0.90 : 0.55
+
   return (
     <group position={[cx, GROUP_Y, cz]}>
 
-      {/* Pedestal body */}
+      {/* Pedestal */}
       <RoundedBox
         ref={meshRef}
         args={[2.96, TILE_H, 2.96]}
@@ -115,33 +51,117 @@ export default function ProjectTile({ tileOrigin, active, project }) {
         castShadow
       >
         <meshStandardMaterial
-          color="#6d28d9"
-          emissive="#7c3aed"
-          emissiveIntensity={0.05}
-          roughness={0.55}
-          metalness={0.10}
+          color={theme?.tileDark   ?? '#2e1065'}
+          emissive={theme?.tileEmissive ?? '#4c1d95'}
+          emissiveIntensity={0.08}
+          roughness={0.75}
+          metalness={0.25}
         />
-        <Edges color="#f0abfc" threshold={15} />
+        <Edges color={theme?.edge ?? '#f0abfc'} threshold={15} />
       </RoundedBox>
 
       {project && (
         <>
-          {/* Title — upper area (far side = -Z = upper in screen) */}
-          <Text
-            position={[0, TEXT_Y, -0.42]}
-            rotation={TEXT_ROT}
-            fontSize={0.40}
-            color="#ffffff"
-            anchorX="center"
-            anchorY="middle"
-            maxWidth={2.4}
-            textAlign="center"
-          >
-            {project.name}
-          </Text>
+          <pointLight
+            position={[0, LIGHT_Y, 0]}
+            color={theme.hex}
+            intensity={active ? 6.0 : 2.5}
+            distance={7}
+            decay={2}
+          />
 
-          {/* Tech chips — lower area (near side = +Z = lower in screen) */}
-          <TechChips tags={project.tech} />
+          <Html
+            transform
+            position={[2.5, CARD_Y, 0]}
+            rotation={[0, Math.PI / 4, 0]}
+            scale={CARD_SCALE}
+            style={{ pointerEvents: 'none' }}
+            zIndexRange={[10, 0]}
+          >
+            <div style={{
+              transform: 'translate(-50%, -100%)',
+              width: '280px',
+              height: '300px',
+              display: 'flex',
+              flexDirection: 'column',
+              background: 'rgba(5, 8, 15, 0.92)',
+              border: `2px solid rgba(${rgb}, ${borderAlpha})`,
+              borderRadius: '12px',
+              padding: '20px 18px',
+              color: '#fff',
+              fontFamily: "'Segoe UI', system-ui, sans-serif",
+              boxShadow: [
+                `0 0 60px rgba(${rgb}, ${glowAlpha})`,
+                `0 0 22px rgba(${rgb}, ${active ? 0.55 : 0.30})`,
+                `inset 0 0 50px rgba(${rgb}, 0.06)`,
+              ].join(', '),
+              userSelect: 'none',
+              boxSizing: 'border-box',
+              pointerEvents: 'auto',
+            }}>
+
+              <div style={{
+                fontSize: '18px',
+                fontWeight: 700,
+                marginBottom: '10px',
+                letterSpacing: '-0.01em',
+                color: '#fff',
+                flexShrink: 0,
+              }}>
+                {project.name}
+              </div>
+
+              <p style={{
+                margin: '0',
+                color: theme.text,
+                fontSize: '12px',
+                lineHeight: 1.6,
+                flexShrink: 0,
+              }}>
+                {project.description}
+              </p>
+
+              <div style={{ flex: 1 }} />
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+                {project.tech.map(tag => (
+                  <span key={tag} style={{
+                    border: `1px solid rgba(${rgb}, ${borderAlpha})`,
+                    color: theme.hex,
+                    borderRadius: '999px',
+                    padding: '3px 10px',
+                    fontSize: '11px',
+                    fontWeight: 500,
+                    whiteSpace: 'nowrap',
+                    background: `rgba(${rgb}, 0.10)`,
+                  }}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setDetailProject(project)}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  background: active ? `rgba(${rgb}, 0.75)` : `rgba(${rgb}, 0.18)`,
+                  border: `1px solid rgba(${rgb}, ${borderAlpha})`,
+                  color: '#fff',
+                  borderRadius: '8px',
+                  padding: '10px 0',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  letterSpacing: '0.05em',
+                  transition: 'background 0.15s',
+                  flexShrink: 0,
+                }}
+              >
+                View More →
+              </button>
+            </div>
+          </Html>
         </>
       )}
     </group>

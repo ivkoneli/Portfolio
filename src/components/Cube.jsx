@@ -1,12 +1,15 @@
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import { useSpring, animated } from '@react-spring/three'
+import { Edges } from '@react-three/drei'
 import useGameStore from '../store/gameStore'
 import useKeyboard from '../hooks/useKeyboard'
 import { LAYOUT, ROWS, COLS, tileToWorld, CUBE_START } from '../data/layout'
 import { findProjectAtTile } from '../data/projects'
 
+const GLOW_COLOR = '#c084fc'
+
 // ── constants ────────────────────────────────────────────────────────────────
-const TILE_Y    = 0.05   // top face of a tile (tile height 0.1, centered at y=0)
+const TILE_Y    = 0.275   // top face of a tile (tile height 0.1, centered at y=0)
 const CUBE_HALF = 0.5    // half of the 1×1×1 cube
 const CUBE_CY   = TILE_Y + CUBE_HALF  // cube centre height = 0.55
 
@@ -23,6 +26,7 @@ export default function Cube() {
   const setIsAnimating   = useGameStore(s => s.setIsAnimating)
   const setCubePos       = useGameStore(s => s.setCubePos)
   const setActiveProject = useGameStore(s => s.setActiveProject)
+  const pendingMove      = useRef(null)   // buffers at most 1 keypress during animation
 
   // react-spring manages ALL transform state.
   // api.set()   → instant jump  (no animation, used for position/offset resets)
@@ -31,13 +35,16 @@ export default function Cube() {
     pivotPos:   [SX, CUBE_CY, SZ],  // world position of the pivot group
     meshOffset: [0,  0,       0 ],  // mesh position inside the pivot group
     rotation:   [0,  0,       0 ],  // pivot group rotation (only this animates)
-    config: { tension: 800, friction: 40 }, // crisp roll, no bounce
+    config: { tension: 3000, friction: 150, clamp: true }, // fast roll, fires onRest immediately at target
   }))
 
   const move = useCallback((dc, dr) => {
     // Read fresh state via getState() — no stale closure risk
     const { cubePos, isAnimating } = useGameStore.getState()
-    if (isAnimating) return
+    if (isAnimating) {
+      pendingMove.current = { dc, dr }  // remember the last key pressed
+      return
+    }
 
     const nextCol = cubePos.col + dc
     const nextRow = cubePos.row + dr
@@ -83,13 +90,20 @@ export default function Cube() {
         api.set({ rotation:   [0,  0,       0 ] })
 
         setCubePos({ col: nextCol, row: nextRow })
-        // Show panel if landing on a project tile, clear if leaving one
         setActiveProject(
           LAYOUT[nextRow][nextCol] === 2
             ? findProjectAtTile(nextCol, nextRow)
             : null
         )
         setIsAnimating(false)
+
+        // Flush buffered keypress — Zustand state is synchronous so cubePos
+        // is already updated by the time move() reads it below
+        const next = pendingMove.current
+        if (next) {
+          pendingMove.current = null
+          move(next.dc, next.dr)
+        }
       },
     })
   }, [api, setCubePos, setIsAnimating, setActiveProject])
@@ -100,7 +114,10 @@ export default function Cube() {
     <animated.group position={spring.pivotPos} rotation={spring.rotation}>
       <animated.mesh position={spring.meshOffset} castShadow>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="#6c63ff" roughness={0.55} metalness={0.05} />
+        <meshStandardMaterial color="#0a0818" roughness={0.55} metalness={0.05} />
+        <Edges color={GLOW_COLOR} lineWidth={3} />
+        {/* Light lives inside the mesh → always at cube centre, survives the roll */}
+        <pointLight color={GLOW_COLOR} intensity={5} distance={7} decay={2} />
       </animated.mesh>
     </animated.group>
   )

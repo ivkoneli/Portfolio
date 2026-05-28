@@ -1,54 +1,91 @@
-import { useEffect } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { useThree } from '@react-three/fiber'
+import { useEffect, useRef } from 'react'
+import { Canvas, useThree, useFrame } from '@react-three/fiber'
 import { ContactShadows } from '@react-three/drei'
 import Cube from './Cube'
 import Grid from './Grid'
-import ProjectPanel from './ProjectPanel'
+import useGameStore from '../store/gameStore'
+import { tileToWorld, CUBE_START } from '../data/layout'
 
-function CameraSetup() {
+// ContactShadows centred on the cube so shadows appear everywhere on the grid
+function FollowingShadow() {
+  const groupRef = useRef()
+  useFrame(() => {
+    if (!groupRef.current) return
+    const { cubePos } = useGameStore.getState()
+    const [cx, , cz] = tileToWorld(cubePos.col, cubePos.row)
+    groupRef.current.position.set(cx, 0, cz)
+  })
+  return (
+    <group ref={groupRef}>
+      <ContactShadows
+        position={[0, 0.06, 0]}
+        opacity={0.5}
+        scale={16}
+        blur={2}
+        far={2}
+      />
+    </group>
+  )
+}
+
+// World position the camera targets on startup (cube's initial tile)
+const [INIT_X, , INIT_Z] = tileToWorld(CUBE_START.col, CUBE_START.row)
+
+// Camera sits this far from its look-at target, preserving the angular offset
+const CAM_DX = 14
+const CAM_DY = 18
+const CAM_DZ = 14
+
+// Fraction of remaining distance closed per frame — lower = smoother/lazier follow
+const LERP = 0.025
+
+function CameraFollow() {
   const { camera } = useThree()
+  const targetRef = useRef({ x: INIT_X, z: INIT_Z })
+
   useEffect(() => {
-    camera.position.set(14, 18, 14)
-    camera.fov = 20
+    camera.fov = 28
     camera.near = 0.1
     camera.far = 200
-    camera.lookAt(0, 0, 0)
+    camera.position.set(INIT_X + CAM_DX, CAM_DY, INIT_Z + CAM_DZ)
+    camera.lookAt(INIT_X, 0, INIT_Z)
     camera.updateProjectionMatrix()
   }, [camera])
+
+  useFrame(() => {
+    const { cubePos } = useGameStore.getState()
+    const [cx, , cz] = tileToWorld(cubePos.col, cubePos.row)
+    const t = targetRef.current
+
+    t.x += (cx - t.x) * LERP
+    t.z += (cz - t.z) * LERP
+
+    camera.position.set(t.x + CAM_DX, CAM_DY, t.z + CAM_DZ)
+    camera.lookAt(t.x, 0, t.z)
+    camera.updateMatrixWorld()
+  })
+
   return null
 }
 
 export default function Scene() {
   return (
     <Canvas shadows>
-      <CameraSetup />
+      <CameraFollow />
 
       {/* ── Lighting ─────────────────────────────────────────────────────────
-          Three sources so every face of every object gets shaped light:
-
-          1. hemisphereLight   — soft gradient from sky above to ground below.
-             Fills shadows without flattening them. Works on ALL meshes.
-
-          2. directionalLight  — main key light (top-right-front). Creates the
-             bright highlight and cast shadows.
-
-          3. directionalLight  — fill light (opposite side, cooler/dimmer).
-             Softens the shadowed faces so they're dark but not black.
+          1. hemisphereLight   — soft gradient fill (sky/ground). No shadow.
+          2. directionalLight  — key light [14,20,-14]. Casts shadows.
+             Shadow direction: (-0.707,0,+0.707) = camera-left/backward.
+          3. directionalLight  — cool fill from camera-left, lifts +Z face.
       ──────────────────────────────────────────────────────────────────────── */}
-      <hemisphereLight
-        args={['#1e1b4b', '#0a0a12', 0.35]}
-      />
-      {/* Key light — upper-right of camera view.
-          Shadow travels in (-1,0,+1) world direction = camera-left,
-          away from the project tile, clearly from the dark face. */}
+      <hemisphereLight args={['#1e1b4b', '#0a0a12', 0.35]} />
       <directionalLight
         position={[14, 20, -14]}
         intensity={1.4}
         castShadow
         shadow-mapSize={[2048, 2048]}
       />
-      {/* Fill — from camera-left side to lift the +Z face out of full black */}
       <directionalLight
         position={[-10, 6, 14]}
         intensity={0.30}
@@ -57,15 +94,8 @@ export default function Scene() {
 
       <Grid />
       <Cube />
-      <ProjectPanel />
 
-      <ContactShadows
-        position={[0, 0.06, 0]}
-        opacity={0.5}
-        scale={16}
-        blur={2}
-        far={2}
-      />
+      <FollowingShadow />
 
       {/* Fog pushed back so foreground objects aren't washed out */}
       <fog attach="fog" args={['#0a0a0f', 24, 55]} />

@@ -6,8 +6,8 @@ import { Edges } from '@react-three/drei'
 export default function Tile({ position }) {
   return (
     <mesh position={position} receiveShadow>
-      <boxGeometry args={[0.96, 0.1, 0.96]} />
-      <meshStandardMaterial color="#00c8ff" roughness={0.85} metalness={0.05} />
+      <boxGeometry args={[0.96, 0.45, 0.96]} />
+      <meshStandardMaterial color="#1a2535" roughness={0.75} metalness={0.25} />
       <Edges color="#000000" threshold={15} />
     </mesh>
   )
