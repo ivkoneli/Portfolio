@@ -65,10 +65,21 @@ export default function ProjectTile({ tileOrigin, active, project }) {
           <pointLight
             position={[0, LIGHT_Y, 0]}
             color={theme.hex}
-            intensity={active ? 6.0 : 2.5}
-            distance={7}
+            intensity={active ? 10.0 : 4.0}
+            distance={8}
             decay={2}
           />
+
+          {/* Visible orb at the light source — glows with bloom, shows without it */}
+          <mesh position={[0, LIGHT_Y, 0]}>
+            <sphereGeometry args={[0.07, 16, 16]} />
+            <meshStandardMaterial
+              color={theme.hex}
+              emissive={theme.hex}
+              emissiveIntensity={active ? 6 : 3}
+              toneMapped={false}
+            />
+          </mesh>
 
           <Html
             transform

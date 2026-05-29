@@ -1,6 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
 import { ContactShadows } from '@react-three/drei'
+import { EffectComposer, Bloom } from '@react-three/postprocessing'
+
+// ── Toggle bloom here ─────────────────────────────────────────────────────────
+const BLOOM_ENABLED = false
 import Cube from './Cube'
 import Grid from './Grid'
 import useGameStore from '../store/gameStore'
@@ -32,9 +36,9 @@ function FollowingShadow() {
 const [INIT_X, , INIT_Z] = tileToWorld(CUBE_START.col, CUBE_START.row)
 
 // Camera sits this far from its look-at target, preserving the angular offset
-const CAM_DX = 14
-const CAM_DY = 18
-const CAM_DZ = 14
+const CAM_DX = 20
+const CAM_DY = 26
+const CAM_DZ = 20
 
 // Fraction of remaining distance closed per frame — lower = smoother/lazier follow
 const LERP = 0.025
@@ -44,7 +48,7 @@ function CameraFollow() {
   const targetRef = useRef({ x: INIT_X, z: INIT_Z })
 
   useEffect(() => {
-    camera.fov = 28
+    camera.fov = 38
     camera.near = 0.1
     camera.far = 200
     camera.position.set(INIT_X + CAM_DX, CAM_DY, INIT_Z + CAM_DZ)
@@ -98,7 +102,13 @@ export default function Scene() {
       <FollowingShadow />
 
       {/* Fog pushed back so foreground objects aren't washed out */}
-      <fog attach="fog" args={['#0a0a0f', 24, 55]} />
+      <fog attach="fog" args={['#0a0a0f', 32, 70]} />
+
+      {BLOOM_ENABLED && (
+        <EffectComposer>
+          <Bloom intensity={1.2} luminanceThreshold={0.15} luminanceSmoothing={0.85} mipmapBlur />
+        </EffectComposer>
+      )}
     </Canvas>
   )
 }
