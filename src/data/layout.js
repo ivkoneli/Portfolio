@@ -2,15 +2,15 @@
 //  TILE LAYOUT  (20 × 20)
 //  0 = void   (no tile — cube can't step here)
 //  1 = normal tile
-//  2 = project tile (marks top-left corner of a 3×3 zone)
+//  2 = project tile (marks top-left corner of a 4×4 zone)
 //
 //  Read the grid visually: left→right = west→east (+X)
 //                          top→bottom = north→south (+Z)
 //
-//  Project zones (3×3 each, value 2):
-//    P1 TicTacToe  — tileOrigin { col:1,  row:1  }  (top-left)
-//    P2 Placeholder — tileOrigin { col:15, row:1  }  (top-right)
-//    P3 Placeholder — tileOrigin { col:15, row:14 }  (bottom-right)
+//  Project zones (4×4 each, value 2):
+//    P1 TicTacToe   — tileOrigin { col:1,  row:0  }  (top-left)
+//    P2 Placeholder — tileOrigin { col:14, row:0  }  (top-right)
+//    P3 Placeholder — tileOrigin { col:14, row:14 }  (bottom-right)
 //    P4 Placeholder — tileOrigin { col:1,  row:14 }  (bottom-left)
 //
 //  Roads:
@@ -21,10 +21,10 @@
 //  col →   0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19
 // ============================================================
 export const LAYOUT = [
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // row 0
-  [0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0], // row 1   P1 & P2
-  [0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0], // row 2
-  [0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0], // row 3
+  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 0   P1 & P2 (4×4 top rows)
+  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 1
+  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 2
+  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 3
   [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0], // row 4   top road (cols 2-16)
   [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0], // row 5   vertical spokes
   [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0], // row 6
@@ -35,10 +35,10 @@ export const LAYOUT = [
   [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0], // row 11
   [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0], // row 12
   [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0], // row 13  bottom road (cols 2-16)
-  [0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0], // row 14  P4 & P3
-  [0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0], // row 15
-  [0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0], // row 16
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // row 17
+  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 14  P4 & P3 (4×4 bottom rows)
+  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 15
+  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 16
+  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 17
   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // row 18
   [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // row 19
 ]
@@ -56,5 +56,5 @@ export function tileToWorld(col, row) {
   ]
 }
 
-// Cube starts on the top road, near P1 (walk left 2 tiles to reach it)
+// Cube starts on the top road, near P1
 export const CUBE_START = { col: 4, row: 4 }

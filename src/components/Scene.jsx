@@ -1,46 +1,21 @@
 import { useEffect, useRef } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
-import { ContactShadows } from '@react-three/drei'
-import { EffectComposer, Bloom } from '@react-three/postprocessing'
-
-// ── Toggle bloom here ─────────────────────────────────────────────────────────
-const BLOOM_ENABLED = false
+import { EffectComposer, Bloom, ToneMapping, Vignette } from '@react-three/postprocessing'
+import { BlendFunction, ToneMappingMode } from 'postprocessing'
 import Cube from './Cube'
 import Grid from './Grid'
+import VolumetricFog from './VolumetricFog'
+import DepthPillars from './DepthPillars'
 import useGameStore from '../store/gameStore'
 import { tileToWorld, CUBE_START } from '../data/layout'
 
-// ContactShadows centred on the cube so shadows appear everywhere on the grid
-function FollowingShadow() {
-  const groupRef = useRef()
-  useFrame(() => {
-    if (!groupRef.current) return
-    const { cubePos } = useGameStore.getState()
-    const [cx, , cz] = tileToWorld(cubePos.col, cubePos.row)
-    groupRef.current.position.set(cx, 0, cz)
-  })
-  return (
-    <group ref={groupRef}>
-      <ContactShadows
-        position={[0, 0.06, 0]}
-        opacity={0.5}
-        scale={16}
-        blur={2}
-        far={2}
-      />
-    </group>
-  )
-}
+const BLOOM_ENABLED = true
 
-// World position the camera targets on startup (cube's initial tile)
 const [INIT_X, , INIT_Z] = tileToWorld(CUBE_START.col, CUBE_START.row)
 
-// Camera sits this far from its look-at target, preserving the angular offset
-const CAM_DX = 20
-const CAM_DY = 26
-const CAM_DZ = 20
-
-// Fraction of remaining distance closed per frame — lower = smoother/lazier follow
+const CAM_DX = 16
+const CAM_DY = 21
+const CAM_DZ = 16
 const LERP = 0.025
 
 function CameraFollow() {
@@ -48,7 +23,7 @@ function CameraFollow() {
   const targetRef = useRef({ x: INIT_X, z: INIT_Z })
 
   useEffect(() => {
-    camera.fov = 38
+    camera.fov = 34
     camera.near = 0.1
     camera.far = 200
     camera.position.set(INIT_X + CAM_DX, CAM_DY, INIT_Z + CAM_DZ)
@@ -60,13 +35,10 @@ function CameraFollow() {
     const { cubePos } = useGameStore.getState()
     const [cx, , cz] = tileToWorld(cubePos.col, cubePos.row)
     const t = targetRef.current
-
     t.x += (cx - t.x) * LERP
     t.z += (cz - t.z) * LERP
-
     camera.position.set(t.x + CAM_DX, CAM_DY, t.z + CAM_DZ)
     camera.lookAt(t.x, 0, t.z)
-    camera.updateMatrixWorld()
   })
 
   return null
@@ -75,14 +47,9 @@ function CameraFollow() {
 export default function Scene() {
   return (
     <Canvas shadows>
+      <color attach="background" args={['#000000']} />
       <CameraFollow />
 
-      {/* ── Lighting ─────────────────────────────────────────────────────────
-          1. hemisphereLight   — soft gradient fill (sky/ground). No shadow.
-          2. directionalLight  — key light [14,20,-14]. Casts shadows.
-             Shadow direction: (-0.707,0,+0.707) = camera-left/backward.
-          3. directionalLight  — cool fill from camera-left, lifts +Z face.
-      ──────────────────────────────────────────────────────────────────────── */}
       <hemisphereLight args={['#1e1b4b', '#0a0a12', 0.35]} />
       <directionalLight
         position={[14, 20, -14]}
@@ -98,15 +65,23 @@ export default function Scene() {
 
       <Grid />
       <Cube />
+      <DepthPillars />
+      <VolumetricFog />
 
-      <FollowingShadow />
-
-      {/* Fog pushed back so foreground objects aren't washed out */}
-      <fog attach="fog" args={['#0a0a0f', 32, 70]} />
+      <fog attach="fog" args={['#000000', 26, 60]} />
 
       {BLOOM_ENABLED && (
-        <EffectComposer>
-          <Bloom intensity={1.2} luminanceThreshold={0.15} luminanceSmoothing={0.85} mipmapBlur />
+        <EffectComposer multisampling={0}>
+          <Bloom
+            blendFunction={BlendFunction.ADD}
+            intensity={2.0}
+            luminanceThreshold={0.2}
+            luminanceSmoothing={0.02}
+          />
+          {/* Foggy bright centre, dark edges — vignette over the whole frame.
+              offset = where darkening starts, darkness = how black the edges go. */}
+          <Vignette offset={0.6} darkness={0.4} />
+          <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
         </EffectComposer>
       )}
     </Canvas>

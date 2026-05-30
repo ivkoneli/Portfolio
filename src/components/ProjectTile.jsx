@@ -12,11 +12,10 @@ const GROUP_Y = 0.15 - HALF_H   // tile top at world y ≈ 0.15
 // Light sits above the tile to cast down onto the surface.
 const LIGHT_Y = HALF_H + 0.55  // local y = 0.95, above tile top face
 
-// Card anchor Y in local space.
-const CARD_Y  = HALF_H
+// Card anchor Y in local space (top face of pedestal).
+const CARD_Y  = HALF_H - 0.5
 
-// scale: 1 CSS px = CARD_SCALE world units.
-const CARD_SCALE = 0.5
+const CARD_SCALE = 0.65
 
 export default function ProjectTile({ tileOrigin, active, project }) {
   const meshRef      = useRef()
@@ -30,9 +29,9 @@ export default function ProjectTile({ tileOrigin, active, project }) {
       : 0.06
   })
 
-  const [cx, , cz] = tileToWorld(tileOrigin.col + 1, tileOrigin.row + 1)
+  // Center of the 4×4 zone
+  const [cx, , cz] = tileToWorld(tileOrigin.col + 1.5, tileOrigin.row + 1.5)
 
-  // All colors come from the project theme; fall back to purple if no project.
   const theme       = project?.theme
   const rgb         = theme?.rgb   ?? '168, 85, 247'
   const borderAlpha = active ? 0.85 : 0.45
@@ -41,14 +40,13 @@ export default function ProjectTile({ tileOrigin, active, project }) {
   return (
     <group position={[cx, GROUP_Y, cz]}>
 
-      {/* Pedestal */}
+      {/* Pedestal — covers full 4×4 zone */}
       <RoundedBox
         ref={meshRef}
-        args={[2.96, TILE_H, 2.96]}
+        args={[3.96, TILE_H, 3.96]}
         radius={0.06}
         smoothness={4}
         receiveShadow
-        castShadow
       >
         <meshStandardMaterial
           color={theme?.tileDark   ?? '#2e1065'}
@@ -65,25 +63,24 @@ export default function ProjectTile({ tileOrigin, active, project }) {
           <pointLight
             position={[0, LIGHT_Y, 0]}
             color={theme.hex}
-            intensity={active ? 10.0 : 4.0}
+            intensity={active ? 4.0 : 2.0}
             distance={8}
             decay={2}
           />
-
-          {/* Visible orb at the light source — glows with bloom, shows without it */}
           <mesh position={[0, LIGHT_Y, 0]}>
-            <sphereGeometry args={[0.07, 16, 16]} />
+            <sphereGeometry args={[0.07, 8, 8]} />
             <meshStandardMaterial
-              color={theme.hex}
               emissive={theme.hex}
-              emissiveIntensity={active ? 6 : 3}
-              toneMapped={false}
+              emissiveIntensity={10}
+              color="#000000"
+              roughness={1}
+              metalness={0}
             />
           </mesh>
 
           <Html
             transform
-            position={[2.5, CARD_Y, 0]}
+            position={[3.25, CARD_Y, 0]}
             rotation={[0, Math.PI / 4, 0]}
             scale={CARD_SCALE}
             style={{ pointerEvents: 'none' }}
@@ -91,14 +88,14 @@ export default function ProjectTile({ tileOrigin, active, project }) {
           >
             <div style={{
               transform: 'translate(-50%, -100%)',
-              width: '280px',
-              height: '300px',
+              width: '300px',
+              height: '360px',
               display: 'flex',
               flexDirection: 'column',
               background: 'rgba(5, 8, 15, 0.92)',
               border: `2px solid rgba(${rgb}, ${borderAlpha})`,
               borderRadius: '12px',
-              padding: '20px 18px',
+              padding: '22px 20px',
               color: '#fff',
               fontFamily: "'Segoe UI', system-ui, sans-serif",
               boxShadow: [
@@ -112,9 +109,9 @@ export default function ProjectTile({ tileOrigin, active, project }) {
             }}>
 
               <div style={{
-                fontSize: '18px',
+                fontSize: '24px',
                 fontWeight: 700,
-                marginBottom: '10px',
+                marginBottom: '12px',
                 letterSpacing: '-0.01em',
                 color: '#fff',
                 flexShrink: 0,
@@ -125,7 +122,7 @@ export default function ProjectTile({ tileOrigin, active, project }) {
               <p style={{
                 margin: '0',
                 color: theme.text,
-                fontSize: '12px',
+                fontSize: '15px',
                 lineHeight: 1.6,
                 flexShrink: 0,
               }}>
@@ -134,14 +131,14 @@ export default function ProjectTile({ tileOrigin, active, project }) {
 
               <div style={{ flex: 1 }} />
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
                 {project.tech.map(tag => (
                   <span key={tag} style={{
                     border: `1px solid rgba(${rgb}, ${borderAlpha})`,
                     color: theme.hex,
                     borderRadius: '999px',
-                    padding: '3px 10px',
-                    fontSize: '11px',
+                    padding: '4px 12px',
+                    fontSize: '13px',
                     fontWeight: 500,
                     whiteSpace: 'nowrap',
                     background: `rgba(${rgb}, 0.10)`,
@@ -160,8 +157,8 @@ export default function ProjectTile({ tileOrigin, active, project }) {
                   border: `1px solid rgba(${rgb}, ${borderAlpha})`,
                   color: '#fff',
                   borderRadius: '8px',
-                  padding: '10px 0',
-                  fontSize: '12px',
+                  padding: '12px 0',
+                  fontSize: '14px',
                   fontWeight: 700,
                   cursor: 'pointer',
                   letterSpacing: '0.05em',

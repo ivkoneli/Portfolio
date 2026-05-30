@@ -1,5 +1,5 @@
 // All project data lives here.
-// tileOrigin = top-left corner of the 3×3 project zone in grid coordinates.
+// tileOrigin = top-left corner of the 4×4 project zone in grid coordinates.
 export const PROJECTS = [
   {
     id: 'tictactoe',
@@ -7,7 +7,7 @@ export const PROJECTS = [
     description: 'Classic TicTacToe built in Unity. Two-player local multiplayer with clean UI.',
     tech: ['Unity 2D', 'C#'],
     demoUrl: 'https://ivkoneli.github.io/TicTacToe/',
-    tileOrigin: { col: 1, row: 1 },
+    tileOrigin: { col: 1, row: 0 },
     theme: {
       hex: '#38bdf8',        // sky blue
       rgb: '56, 189, 248',
@@ -23,7 +23,7 @@ export const PROJECTS = [
     description: 'Coming soon.',
     tech: ['Coming Soon'],
     demoUrl: '',
-    tileOrigin: { col: 15, row: 1 },
+    tileOrigin: { col: 14, row: 0 },
     theme: {
       hex: '#f59e0b',        // amber
       rgb: '245, 158, 11',
@@ -39,7 +39,7 @@ export const PROJECTS = [
     description: 'Coming soon.',
     tech: ['Coming Soon'],
     demoUrl: '',
-    tileOrigin: { col: 15, row: 14 },
+    tileOrigin: { col: 14, row: 14 },
     theme: {
       hex: '#10b981',        // emerald
       rgb: '16, 185, 129',
@@ -67,10 +67,10 @@ export const PROJECTS = [
   },
 ]
 
-// Returns the project whose 3×3 zone contains (col, row), or null.
+// Returns the project whose 4×4 zone contains (col, row), or null.
 export function findProjectAtTile(col, row) {
   return PROJECTS.find(p =>
-    col >= p.tileOrigin.col && col <= p.tileOrigin.col + 2 &&
-    row >= p.tileOrigin.row && row <= p.tileOrigin.row + 2
+    col >= p.tileOrigin.col && col <= p.tileOrigin.col + 3 &&
+    row >= p.tileOrigin.row && row <= p.tileOrigin.row + 3
   ) ?? null
 }
