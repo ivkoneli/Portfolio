@@ -166,7 +166,7 @@ export default function ProjectTile({ tileOrigin, active, project }) {
                   flexShrink: 0,
                 }}
               >
-                View More →
+                View More {active ? '(E) ' : ''}→
               </button>
             </div>
           </Html>

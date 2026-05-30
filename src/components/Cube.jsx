@@ -40,7 +40,8 @@ export default function Cube() {
 
   const move = useCallback((dc, dr) => {
     // Read fresh state via getState() — no stale closure risk
-    const { cubePos, isAnimating } = useGameStore.getState()
+    const { cubePos, isAnimating, detailProject } = useGameStore.getState()
+    if (detailProject) return   // freeze the cube while a project panel is open
     if (isAnimating) {
       pendingMove.current = { dc, dr }  // remember the last key pressed
       return
