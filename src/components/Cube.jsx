@@ -1,9 +1,9 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useSpring, animated } from '@react-spring/three'
 import { Edges } from '@react-three/drei'
 import useGameStore from '../store/gameStore'
 import useKeyboard from '../hooks/useKeyboard'
-import { LAYOUT, ROWS, COLS, tileToWorld, CUBE_START } from '../data/layout'
+import { LAYOUT, ROWS, COLS, tileToWorld, CUBE_START, findPath } from '../data/layout'
 import { findProjectAtTile } from '../data/projects'
 
 const GLOW_COLOR = '#c084fc'
@@ -26,7 +26,9 @@ export default function Cube() {
   const setIsAnimating   = useGameStore(s => s.setIsAnimating)
   const setCubePos       = useGameStore(s => s.setCubePos)
   const setActiveProject = useGameStore(s => s.setActiveProject)
+  const moveTarget       = useGameStore(s => s.moveTarget)
   const pendingMove      = useRef(null)   // buffers at most 1 keypress during animation
+  const pathQueue        = useRef([])     // remaining click-to-move steps
 
   // react-spring manages ALL transform state.
   // api.set()   → instant jump  (no animation, used for position/offset resets)
@@ -41,7 +43,11 @@ export default function Cube() {
   const move = useCallback((dc, dr) => {
     // Read fresh state via getState() — no stale closure risk
     const { cubePos, isAnimating, detailProject } = useGameStore.getState()
-    if (detailProject) return   // freeze the cube while a project panel is open
+    if (detailProject) {        // freeze the cube while a project panel is open
+      pathQueue.current = []
+      useGameStore.getState().setMoveDest(null)
+      return
+    }
     if (isAnimating) {
       pendingMove.current = { dc, dr }  // remember the last key pressed
       return
@@ -98,18 +104,38 @@ export default function Cube() {
         )
         setIsAnimating(false)
 
-        // Flush buffered keypress — Zustand state is synchronous so cubePos
-        // is already updated by the time move() reads it below
-        const next = pendingMove.current
-        if (next) {
-          pendingMove.current = null
-          move(next.dc, next.dr)
+        // Continue a click-to-move path first, then any buffered keypress.
+        // Zustand state is synchronous so cubePos is already updated here.
+        if (pathQueue.current.length > 0) {
+          const step = pathQueue.current.shift()
+          move(step.dc, step.dr)
+        } else {
+          useGameStore.getState().setMoveDest(null)   // arrived — clear destination marker
+          const next = pendingMove.current
+          if (next) {
+            pendingMove.current = null
+            move(next.dc, next.dr)
+          }
         }
       },
     })
   }, [api, setCubePos, setIsAnimating, setActiveProject])
 
   useKeyboard(move)
+
+  // Click-to-move: BFS a path to the clicked tile, then roll along it.
+  useEffect(() => {
+    if (!moveTarget) return
+    const { cubePos, isAnimating, detailProject, setMoveTarget } = useGameStore.getState()
+    setMoveTarget(null)                 // consume the request
+    if (detailProject || isAnimating) return
+    const path = findPath(cubePos, moveTarget)
+    if (!path || path.length === 0) return
+    useGameStore.getState().setMoveDest(moveTarget)   // mark destination until we arrive
+    pathQueue.current = path
+    const step = pathQueue.current.shift()
+    move(step.dc, step.dr)
+  }, [moveTarget, move])
 
   return (
     <animated.group position={spring.pivotPos} rotation={spring.rotation}>

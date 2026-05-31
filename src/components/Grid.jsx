@@ -2,6 +2,8 @@ import { LAYOUT, tileToWorld } from '../data/layout'
 import { PROJECTS } from '../data/projects'
 import Tile from './Tile'
 import ProjectTile from './ProjectTile'
+import HoverHighlight from './HoverHighlight'
+import DestinationMarker from './DestinationMarker'
 import useGameStore from '../store/gameStore'
 
 // Returns true if this cell is the TOP-LEFT corner of a project 3×3 zone.
@@ -16,6 +18,8 @@ export default function Grid() {
 
   return (
     <group>
+      <HoverHighlight />
+      <DestinationMarker />
       {LAYOUT.flatMap((row, rowIdx) =>
         row.map((cell, colIdx) => {
           if (cell === 0) return null

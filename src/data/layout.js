@@ -58,3 +58,49 @@ export function tileToWorld(col, row) {
 
 // Cube starts on the top road, near P1
 export const CUBE_START = { col: 4, row: 4 }
+
+// Convert a world XZ point back to the nearest grid cell (inverse of tileToWorld).
+export function worldToTile(x, z) {
+  return {
+    col: Math.round(x + (COLS - 1) / 2),
+    row: Math.round(z + (ROWS - 1) / 2),
+  }
+}
+
+function isWalkable(col, row) {
+  return row >= 0 && row < ROWS && col >= 0 && col < COLS && LAYOUT[row][col] !== 0
+}
+
+// BFS shortest path over walkable tiles. Returns an array of { dc, dr } steps
+// from start to goal, [] if already there, or null if unreachable.
+export function findPath(start, goal) {
+  if (!isWalkable(goal.col, goal.row)) return null
+  if (start.col === goal.col && start.row === goal.row) return []
+
+  const key = (c, r) => `${c},${r}`
+  const prev = { [key(start.col, start.row)]: null }
+  const queue = [start]
+  const dirs = [{ dc: 1, dr: 0 }, { dc: -1, dr: 0 }, { dc: 0, dr: 1 }, { dc: 0, dr: -1 }]
+
+  while (queue.length) {
+    const cur = queue.shift()
+    if (cur.col === goal.col && cur.row === goal.row) {
+      const steps = []
+      let node = cur
+      while (prev[key(node.col, node.row)]) {
+        const p = prev[key(node.col, node.row)]
+        steps.push({ dc: node.col - p.col, dr: node.row - p.row })
+        node = p
+      }
+      return steps.reverse()
+    }
+    for (const d of dirs) {
+      const nc = cur.col + d.dc, nr = cur.row + d.dr
+      if (isWalkable(nc, nr) && !(key(nc, nr) in prev)) {
+        prev[key(nc, nr)] = { col: cur.col, row: cur.row }
+        queue.push({ col: nc, row: nr })
+      }
+    }
+  }
+  return null
+}

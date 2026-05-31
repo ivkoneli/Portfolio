@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RoundedBox, Edges, Html } from '@react-three/drei'
-import { tileToWorld } from '../data/layout'
+import { tileToWorld, worldToTile } from '../data/layout'
 import useGameStore from '../store/gameStore'
 
 // ── tile geometry ──────────────────────────────────────────────────────────────
@@ -20,6 +20,17 @@ const CARD_SCALE = 0.65
 export default function ProjectTile({ tileOrigin, active, project }) {
   const meshRef      = useRef()
   const setDetailProject = useGameStore(s => s.setDetailProject)
+  const setHoveredTile   = useGameStore(s => s.setHoveredTile)
+  const setMoveTarget    = useGameStore(s => s.setMoveTarget)
+
+  const hover = e => {
+    e.stopPropagation()
+    const cell = worldToTile(e.point.x, e.point.z)
+    const cur = useGameStore.getState().hoveredTile
+    if (!cur || cur.col !== cell.col || cur.row !== cell.row) setHoveredTile(cell)
+  }
+  const out   = e => { e.stopPropagation(); setHoveredTile(null) }
+  const click = e => { e.stopPropagation(); setMoveTarget(worldToTile(e.point.x, e.point.z)) }
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return
@@ -47,6 +58,9 @@ export default function ProjectTile({ tileOrigin, active, project }) {
         radius={0.06}
         smoothness={4}
         receiveShadow
+        onPointerMove={hover}
+        onPointerOut={out}
+        onClick={click}
       >
         <meshStandardMaterial
           color={theme?.tileDark   ?? '#2e1065'}
@@ -87,7 +101,9 @@ export default function ProjectTile({ tileOrigin, active, project }) {
             zIndexRange={[10, 0]}
           >
             <div style={{
-              transform: 'translate(-50%, -100%)',
+              transform: `translate(-50%, -100%) scale(${active ? 1.05 : 1})`,
+              transformOrigin: 'center bottom',
+              transition: 'transform 0.25s ease, box-shadow 0.25s ease',
               width: '300px',
               height: '360px',
               display: 'flex',
@@ -105,7 +121,7 @@ export default function ProjectTile({ tileOrigin, active, project }) {
               ].join(', '),
               userSelect: 'none',
               boxSizing: 'border-box',
-              pointerEvents: 'auto',
+              pointerEvents: 'none',   // let the mouse reach the tiles behind the card
             }}>
 
               <div style={{
@@ -162,8 +178,19 @@ export default function ProjectTile({ tileOrigin, active, project }) {
                   fontWeight: 700,
                   cursor: 'pointer',
                   letterSpacing: '0.05em',
-                  transition: 'background 0.15s',
+                  transition: 'background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease',
                   flexShrink: 0,
+                  pointerEvents: 'auto',   // …but the button itself stays clickable/hoverable
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = `rgba(${rgb}, 0.95)`
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                  e.currentTarget.style.boxShadow = `0 6px 18px rgba(${rgb}, 0.5)`
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = active ? `rgba(${rgb}, 0.75)` : `rgba(${rgb}, 0.18)`
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = 'none'
                 }}
               >
                 View More {active ? '(E) ' : ''}→
