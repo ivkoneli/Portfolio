@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import useGameStore from '../../store/gameStore'
 import portfolioShot from '../../assets/fallback.png'
-import { GitHubIcon, YouTubeIcon } from '../ui/Icons'
+import { GitHubIcon, YouTubeIcon, DownloadIcon } from '../ui/Icons'
 
 // A full-width action button (Play Demo / View Source / Watch Gameplay).
 function ActionButton({ href, bg, bgHover, children }) {
@@ -82,7 +82,7 @@ export default function ProjectPanel() {
   })
 
   return (
-    <div style={{
+    <div className="project-panel" style={{
       position: 'fixed',
       right: 0,
       top: 0,
@@ -115,20 +115,30 @@ export default function ProjectPanel() {
         <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.2 }}>
           {detailProject.name}
         </h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, marginLeft: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, marginLeft: '12px' }}>
           <span style={{ fontSize: '11px', color: '#4b5563' }}>Esc</span>
           <button
             onClick={() => setDetailProject(null)}
+            aria-label="Close panel"
             style={{
-              background: 'none',
-              border: '1px solid rgba(192, 132, 252, 0.35)',
-              color: '#a78bfa',
-              borderRadius: '6px',
-              padding: '4px 10px',
-              fontSize: '13px',
+              width: '42px',
+              height: '42px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(192, 132, 252, 0.22)',
+              border: '1.5px solid rgba(192, 132, 252, 0.85)',
+              color: '#fff',
+              borderRadius: '10px',
+              fontSize: '20px',
+              fontWeight: 700,
               cursor: 'pointer',
               lineHeight: 1,
+              flexShrink: 0,
+              transition: 'background 0.15s ease, transform 0.15s ease',
             }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(192, 132, 252, 0.45)'; e.currentTarget.style.transform = 'scale(1.06)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(192, 132, 252, 0.22)'; e.currentTarget.style.transform = 'scale(1)' }}
           >
             ✕
           </button>
@@ -247,6 +257,11 @@ export default function ProjectPanel() {
         {detailProject.repoUrl && (
           <ActionButton href={detailProject.repoUrl} bg="#24292e" bgHover="#30363d">
             <GitHubIcon size={16} /> View Source
+          </ActionButton>
+        )}
+        {detailProject.releasesUrl && (
+          <ActionButton href={detailProject.releasesUrl} bg="#1f7a4d" bgHover="#2a9d63">
+            <DownloadIcon size={16} /> Download Release
           </ActionButton>
         )}
         {detailProject.youtubeUrl && (

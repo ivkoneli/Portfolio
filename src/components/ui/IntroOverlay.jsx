@@ -16,6 +16,9 @@ const kbd = {
   color: '#e9d5ff',
 }
 
+// Touch-primary devices have no keyboard, so the hint speaks "tap" not "arrows".
+const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+
 export default function IntroOverlay() {
   const [hidden, setHidden] = useState(false)
   const [gone, setGone] = useState(false)
@@ -70,13 +73,25 @@ export default function IntroOverlay() {
         fontSize: '15px',
         whiteSpace: 'nowrap',
       }}>
-        <span style={kbd}>↑↓←→</span>
-        <span>or</span>
-        <span style={kbd}>click</span>
-        <span>to move</span>
-        <span style={{ opacity: 0.35, margin: '0 4px' }}>•</span>
-        <span style={kbd}>E</span>
-        <span>to view a project</span>
+        {isTouch ? (
+          <>
+            <span style={kbd}>tap</span>
+            <span>to move</span>
+            <span style={{ opacity: 0.35, margin: '0 4px' }}>•</span>
+            <span style={kbd}>tap</span>
+            <span>a project to view</span>
+          </>
+        ) : (
+          <>
+            <span style={kbd}>↑↓←→</span>
+            <span>or</span>
+            <span style={kbd}>click</span>
+            <span>to move</span>
+            <span style={{ opacity: 0.35, margin: '0 4px' }}>•</span>
+            <span style={kbd}>E</span>
+            <span>to view a project</span>
+          </>
+        )}
       </div>
     </div>
   )

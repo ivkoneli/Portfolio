@@ -45,7 +45,7 @@ export const PROJECTS = [
     id: 'minigames',
     name: 'MiniGames Platform',
     description: 'A web platform of puzzle minigames and trivia, built with TypeScript + Phaser.',
-    longDescription: 'A web-based minigames platform built with TypeScript and the Phaser game engine. It collects a handful of puzzle games alongside trivia across science, history, and math, all under one playable hub. Bundled with Vite and deployed to GitHub Pages — a self-contained showcase of small, focused browser games.',
+    longDescription: 'A web-based minigames platform built with TypeScript and the Phaser game engine. It collects a handful of puzzle games alongside trivia across science, history, and math, all under one playable hub. Bundled with Vite and deployed to GitHub Pages, it\'s a self-contained showcase of small, focused browser games.',
     tech: ['TypeScript', 'Phaser', 'Vite'],
     demoUrl: 'https://ivkoneli.github.io/MiniGames/',
     repoUrl: 'https://github.com/ivkoneli/MiniGames',
@@ -57,7 +57,7 @@ export const PROJECTS = [
     id: 'tictactoe',
     name: 'TicTacToe',
     description: 'Classic TicTacToe built in Unity. Two-player local multiplayer with clean UI.',
-    longDescription: 'A polished two-player local multiplayer TicTacToe built in Unity. It features a clean, minimal interface, smooth turn-based gameplay, automatic win and draw detection, and a responsive board that scales across screen sizes. Built as a hands-on exercise in Unity 2D fundamentals — input handling, game-state management, and UI layout — with an emphasis on tight, readable game logic and a frictionless player experience.',
+    longDescription: 'A polished two-player local multiplayer TicTacToe built in Unity. It features a clean, minimal interface, smooth turn-based gameplay, automatic win and draw detection, and a responsive board that scales across screen sizes. Built as a hands-on exercise in Unity 2D fundamentals like input handling, game-state management, and UI layout, with an emphasis on tight, readable game logic and a frictionless player experience.',
     tech: ['Unity 2D', 'C#'],
     demoUrl: 'https://ivkoneli.github.io/TicTacToe/',
     repoUrl: 'https://github.com/ivkoneli/TicTacToe',
@@ -69,7 +69,7 @@ export const PROJECTS = [
     id: 'knights-gauntlet',
     name: "Knight's Gauntlet",
     description: 'A Unity action game with a Python backend deployed on Railway.',
-    longDescription: "Knight's Gauntlet is a Unity (C#) action game where you fight your way through waves of enemies as a knight. What sets it apart from a typical client-only game is a Python backend deployed on Railway: the game talks to a live API for online features like persistent scores and a leaderboard, so it spans the full stack — gameplay and UI on the client, plus a real deployed server behind it.",
+    longDescription: "Knight's Gauntlet is a Unity (C#) action game where you fight your way through waves of enemies as a knight. What sets it apart from a typical client-only game is a Python backend deployed on Railway: the game talks to a live API for online features like persistent scores and a leaderboard, so it spans the full stack, with gameplay and UI on the client plus a real deployed server behind it.",
     tech: ['Unity', 'C#', 'Python', 'Railway'],
     demoUrl: 'https://ivkoneli.github.io/KnightsGauntlet/',
     repoUrl: 'https://github.com/ivkoneli/KnightsGauntlet',
@@ -82,13 +82,44 @@ export const PROJECTS = [
     id: 'shader-pipelines',
     name: 'Shader Pipelines',
     description: 'Bachelor\'s thesis: a Unity showcase of post-processing, NPR and procedural shaders.',
-    longDescription: "My bachelor's thesis — a Unity project exploring real-time shader pipelines across multiple scenes. It demonstrates post-processing effects, non-photorealistic rendering (NPR), and procedural shader effects, applied to both low-poly and high-quality assets so each technique can be compared in context. Written primarily in ShaderLab/HLSL with C# driving the scenes, it's a deep-dive into how custom shaders shape the look of a rendered scene.",
+    longDescription: "My bachelor's thesis: a Unity project exploring real-time shader pipelines across multiple scenes. It demonstrates post-processing effects, non-photorealistic rendering (NPR), and procedural shader effects, applied to both low-poly and high-quality assets so each technique can be compared in context. Written primarily in ShaderLab/HLSL with C# driving the scenes, it's a deep-dive into how custom shaders shape the look of a rendered scene.",
     tech: ['Unity', 'ShaderLab', 'HLSL', 'C#'],
     repoUrl: 'https://github.com/ivkoneli/ShaderPipelinesDiplomski',
     youtubeUrl: 'https://youtu.be/gyD2RhK9JoE',
     images: [shp1, shp2, shp3, shp4, shp5],
     tileOrigin: PROJECT_ORIGINS['shader-pipelines'],
-    theme: makeTheme('#10b981'),   // tech — emerald
+    theme: makeTheme('#10b981'),   // emerald — graphics
+  },
+  {
+    id: 'domineering',
+    name: 'Domineering',
+    description: 'A Python/pygame clone of the classic Domineering board game, with local multiplayer and a custom A* CPU.',
+    longDescription: "A Python clone of Domineering, the classic combinatorial board game where two players place dominoes in opposing orientations until one of them can't move. Built with pygame for the UI and board interaction, it supports local two-player matches as well as a CPU opponent driven by a custom A*-style search: difficulty scales with how deep the search goes and how far ahead the algorithm predicts. Old-school game AI, the clever hand-written kind from before the LLM era.",
+    tech: ['Python', 'pygame', 'A*'],
+    repoUrl: 'https://github.com/ivkoneli/Domineering',
+    tileOrigin: PROJECT_ORIGINS.domineering,
+    theme: makeTheme('#8b5cf6'),   // violet — AI
+  },
+  {
+    id: 'tasking',
+    name: 'TasKing',
+    description: 'A React + .NET work-management app for organizations to split work and track tasks, like a homegrown Jira or ClickUp.',
+    longDescription: "TasKing is a work-management web app for organizations, basically a homegrown Jira or ClickUp, built with a React front end and a .NET back end. It lets teams break work into projects and track tasks through their lifecycle, with a MySQL database and hosting on Azure. Built around four years ago; the repository is currently being re-populated, so the full source will land here soon.",
+    tech: ['React', '.NET', 'Azure', 'MySQL'],
+    repoUrl: 'https://github.com/ivkoneli/TasKing',
+    tileOrigin: PROJECT_ORIGINS.tasking,
+    theme: makeTheme('#14b8a6'),   // teal — full-stack web
+  },
+  {
+    id: 'pokemon-go',
+    name: 'PokémonGo',
+    description: 'A Pokémon-inspired Android app: explore real city spots, catch and battle creatures, and track your progress.',
+    longDescription: "MyPlaces is a Pokémon-inspired Android app built in Kotlin. Explore your city to discover creatures tied to real locations, then catch and battle them in turn-based combat with live damage and XP logs. It tracks per-user profiles (levels, experience, win/loss records) backed by Firebase (Firestore, Authentication, Storage), and rounds it out with a map, leaderboard, and customizable avatars. Built on Android Jetpack with a clean MVVM architecture.",
+    tech: ['Kotlin', 'Firebase'],
+    repoUrl: 'https://github.com/ivkoneli/PokemonGo',
+    releasesUrl: 'https://github.com/ivkoneli/PokemonGo/releases/tag/v2.0r',
+    tileOrigin: PROJECT_ORIGINS['pokemon-go'],
+    theme: makeTheme('#ef4444'),   // red — mobile
   },
 ]
 

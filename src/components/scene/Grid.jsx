@@ -4,6 +4,8 @@ import Tile from './Tile'
 import ProjectTile from '../project/ProjectTile'
 import HoverHighlight from '../interaction/HoverHighlight'
 import DestinationMarker from '../interaction/DestinationMarker'
+import PathDots from '../interaction/PathDots'
+import ClickRipple from '../interaction/ClickRipple'
 import InteractionPlane from '../interaction/InteractionPlane'
 import useGameStore from '../../store/gameStore'
 
@@ -22,6 +24,8 @@ export default function Grid() {
       <InteractionPlane />
       <HoverHighlight />
       <DestinationMarker />
+      <PathDots />
+      <ClickRipple />
       {LAYOUT.flatMap((row, rowIdx) =>
         row.map((cell, colIdx) => {
           if (cell === 0) return null

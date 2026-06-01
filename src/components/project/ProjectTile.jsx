@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { RoundedBox, Edges, Html } from '@react-three/drei'
 import { tileToWorld } from '../../data/layout'
 import useGameStore from '../../store/gameStore'
-import { GitHubIcon, YouTubeIcon } from '../ui/Icons'
+import { GitHubIcon, YouTubeIcon, DownloadIcon } from '../ui/Icons'
 
 // ── tile geometry ──────────────────────────────────────────────────────────────
 const TILE_H  = 0.80
@@ -185,8 +185,9 @@ export default function ProjectTile({ tileOrigin, active, project }) {
                 </button>
 
                 {[
-                  project.repoUrl    && { href: project.repoUrl,    title: 'View source on GitHub', Icon: GitHubIcon },
-                  project.youtubeUrl && { href: project.youtubeUrl, title: 'Watch gameplay',        Icon: YouTubeIcon },
+                  project.repoUrl     && { href: project.repoUrl,     title: 'View source on GitHub', Icon: GitHubIcon },
+                  project.youtubeUrl  && { href: project.youtubeUrl,  title: 'Watch gameplay',        Icon: YouTubeIcon },
+                  project.releasesUrl && { href: project.releasesUrl, title: 'Download release',      Icon: DownloadIcon },
                 ].filter(Boolean).map(({ href, title, Icon }) => (
                   <a
                     key={href}

@@ -10,3 +10,22 @@
 .holo-card .holo-interactive * {
   pointer-events: auto !important;
 }
+
+/* The R3F canvas owns every touch gesture (tap-to-move). Tell the browser not to
+   treat touches as scroll/pinch-zoom so taps register instantly on mobile. */
+canvas {
+  touch-action: none;
+}
+
+/* Remove the grey tap-flash on buttons/links for a cleaner mobile feel. */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Portrait / phones: a 30%-wide side panel is unreadably narrow, so the project
+   detail panel takes the full screen instead. */
+@media (max-width: 768px) {
+  .project-panel {
+    width: 100% !important;
+  }
+}

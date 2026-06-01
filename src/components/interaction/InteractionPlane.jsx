@@ -10,6 +10,7 @@ const SIZE = 40
 export default function InteractionPlane() {
   const setHoveredTile = useGameStore(s => s.setHoveredTile)
   const setMoveTarget  = useGameStore(s => s.setMoveTarget)
+  const setClickPing   = useGameStore(s => s.setClickPing)
 
   const update = e => {
     const cell = worldToTile(e.point.x, e.point.z)
@@ -23,7 +24,9 @@ export default function InteractionPlane() {
   const out   = () => setHoveredTile(null)
   const click = e => {
     const cell = worldToTile(e.point.x, e.point.z)
-    if (isWalkable(cell.col, cell.row)) setMoveTarget(cell)
+    if (!isWalkable(cell.col, cell.row)) return
+    setMoveTarget(cell)
+    setClickPing({ ...cell, id: Date.now() })   // fresh id restarts the ripple
   }
 
   return (
