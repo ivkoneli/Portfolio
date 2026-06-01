@@ -67,7 +67,7 @@ export function worldToTile(x, z) {
   }
 }
 
-function isWalkable(col, row) {
+export function isWalkable(col, row) {
   return row >= 0 && row < ROWS && col >= 0 && col < COLS && LAYOUT[row][col] !== 0
 }
 

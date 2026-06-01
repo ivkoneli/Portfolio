@@ -4,6 +4,7 @@ import Tile from './Tile'
 import ProjectTile from './ProjectTile'
 import HoverHighlight from './HoverHighlight'
 import DestinationMarker from './DestinationMarker'
+import InteractionPlane from './InteractionPlane'
 import useGameStore from '../store/gameStore'
 
 // Returns true if this cell is the TOP-LEFT corner of a project 3×3 zone.
@@ -18,6 +19,7 @@ export default function Grid() {
 
   return (
     <group>
+      <InteractionPlane />
       <HoverHighlight />
       <DestinationMarker />
       {LAYOUT.flatMap((row, rowIdx) =>
@@ -27,7 +29,7 @@ export default function Grid() {
           // Normal tile
           if (cell === 1) {
             const [x, y, z] = tileToWorld(colIdx, rowIdx)
-            return <Tile key={`${colIdx}-${rowIdx}`} position={[x, y, z]} />
+            return <Tile key={`${colIdx}-${rowIdx}`} position={[x, y, z]} col={colIdx} row={rowIdx} />
           }
 
           // Project tile — render ONE mesh per 3×3 zone (at the origin cell only)

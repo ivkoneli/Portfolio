@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RoundedBox, Edges, Html } from '@react-three/drei'
-import { tileToWorld, worldToTile } from '../data/layout'
+import { tileToWorld } from '../data/layout'
 import useGameStore from '../store/gameStore'
 import { GitHubIcon, YouTubeIcon } from './Icons'
 
@@ -21,17 +21,6 @@ const CARD_SCALE = 0.65
 export default function ProjectTile({ tileOrigin, active, project }) {
   const meshRef      = useRef()
   const setDetailProject = useGameStore(s => s.setDetailProject)
-  const setHoveredTile   = useGameStore(s => s.setHoveredTile)
-  const setMoveTarget    = useGameStore(s => s.setMoveTarget)
-
-  const hover = e => {
-    e.stopPropagation()
-    const cell = worldToTile(e.point.x, e.point.z)
-    const cur = useGameStore.getState().hoveredTile
-    if (!cur || cur.col !== cell.col || cur.row !== cell.row) setHoveredTile(cell)
-  }
-  const out   = e => { e.stopPropagation(); setHoveredTile(null) }
-  const click = e => { e.stopPropagation(); setMoveTarget(worldToTile(e.point.x, e.point.z)) }
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return
@@ -59,9 +48,6 @@ export default function ProjectTile({ tileOrigin, active, project }) {
         radius={0.06}
         smoothness={4}
         receiveShadow
-        onPointerMove={hover}
-        onPointerOut={out}
-        onClick={click}
       >
         <meshStandardMaterial
           color={theme?.tileDark   ?? '#2e1065'}
@@ -95,6 +81,7 @@ export default function ProjectTile({ tileOrigin, active, project }) {
 
           <Html
             transform
+            wrapperClass="holo-card"
             position={[3.25, CARD_Y, 0]}
             rotation={[0, Math.PI / 4, 0]}
             scale={CARD_SCALE}
@@ -167,6 +154,7 @@ export default function ProjectTile({ tileOrigin, active, project }) {
 
               <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                 <button
+                  className="holo-interactive"
                   onClick={() => setDetailProject(project)}
                   style={{
                     flex: 1,
@@ -202,6 +190,7 @@ export default function ProjectTile({ tileOrigin, active, project }) {
                 ].filter(Boolean).map(({ href, title, Icon }) => (
                   <a
                     key={href}
+                    className="holo-interactive"
                     href={href}
                     target="_blank"
                     rel="noreferrer"

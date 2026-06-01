@@ -1,0 +1,12 @@
+/* drei <Html> hologram cards sit in DOM on top of the canvas. Their wrapper
+   divs default to pointer-events:auto and would block the 3D grid behind them.
+   Force the whole card subtree click-through; only .holo-interactive elements
+   (the buttons/links) capture the mouse. */
+.holo-card,
+.holo-card * {
+  pointer-events: none !important;
+}
+.holo-card .holo-interactive,
+.holo-card .holo-interactive * {
+  pointer-events: auto !important;
+}
