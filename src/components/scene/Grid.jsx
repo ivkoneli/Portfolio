@@ -1,11 +1,11 @@
-import { LAYOUT, tileToWorld } from '../data/layout'
-import { PROJECTS } from '../data/projects'
+import { LAYOUT, tileToWorld } from '../../data/layout'
+import { PROJECTS } from '../../data/projects'
 import Tile from './Tile'
-import ProjectTile from './ProjectTile'
-import HoverHighlight from './HoverHighlight'
-import DestinationMarker from './DestinationMarker'
-import InteractionPlane from './InteractionPlane'
-import useGameStore from '../store/gameStore'
+import ProjectTile from '../project/ProjectTile'
+import HoverHighlight from '../interaction/HoverHighlight'
+import DestinationMarker from '../interaction/DestinationMarker'
+import InteractionPlane from '../interaction/InteractionPlane'
+import useGameStore from '../../store/gameStore'
 
 // Returns true if this cell is the TOP-LEFT corner of a project 3×3 zone.
 function isProjectOrigin(rowIdx, colIdx) {

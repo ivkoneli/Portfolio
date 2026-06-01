@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useSpring, animated } from '@react-spring/three'
 import { Edges } from '@react-three/drei'
-import useGameStore from '../store/gameStore'
-import useKeyboard from '../hooks/useKeyboard'
-import { LAYOUT, ROWS, COLS, tileToWorld, CUBE_START, findPath } from '../data/layout'
-import { findProjectAtTile } from '../data/projects'
+import useGameStore from '../../store/gameStore'
+import useKeyboard from '../../hooks/useKeyboard'
+import { LAYOUT, ROWS, COLS, tileToWorld, CUBE_START, findPath } from '../../data/layout'
+import { findProjectAtTile } from '../../data/projects'
 
 const GLOW_COLOR = '#c084fc'
 

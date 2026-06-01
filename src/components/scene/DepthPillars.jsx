@@ -1,6 +1,6 @@
 import { RoundedBox, Edges } from '@react-three/drei'
-import { tileToWorld } from '../data/layout'
-import { PROJECTS } from '../data/projects'
+import { tileToWorld } from '../../data/layout'
+import { PROJECTS } from '../../data/projects'
 
 const TILE_H   = 0.80
 const HALF_H   = TILE_H / 2

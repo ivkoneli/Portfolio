@@ -1,6 +1,6 @@
 import { Edges } from '@react-three/drei'
-import useGameStore from '../store/gameStore'
-import { tileToWorld, LAYOUT } from '../data/layout'
+import useGameStore from '../../store/gameStore'
+import { tileToWorld, LAYOUT } from '../../data/layout'
 
 // Marks the tile the cube is travelling to (set on click, cleared on arrival).
 // Distinct green so it reads as "go here", separate from the cyan hover outline.

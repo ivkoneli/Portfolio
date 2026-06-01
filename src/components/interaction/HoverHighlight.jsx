@@ -1,6 +1,6 @@
 import { Edges } from '@react-three/drei'
-import useGameStore from '../store/gameStore'
-import { tileToWorld, LAYOUT } from '../data/layout'
+import useGameStore from '../../store/gameStore'
+import { tileToWorld, LAYOUT } from '../../data/layout'
 
 // A single glowing outline that snaps to whichever tile the mouse is over.
 // One mesh (not per-tile) so hovering doesn't re-render the whole grid.

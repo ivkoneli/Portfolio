@@ -1,7 +1,7 @@
-import ttt1 from './TicTacToePicture1.png'
-import ttt2 from './TicTacToePicture2.png'
-import ttt3 from './TicTacToePicture3.png'
-import ttt4 from './TicTacToePicture4.png'
+import ttt1 from '../assets/projects/tictactoe/1.png'
+import ttt2 from '../assets/projects/tictactoe/2.png'
+import ttt3 from '../assets/projects/tictactoe/3.png'
+import ttt4 from '../assets/projects/tictactoe/4.png'
 
 // All project data lives here.
 // tileOrigin = top-left corner of the 4×4 project zone in grid coordinates.

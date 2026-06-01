@@ -6,8 +6,8 @@ import Cube from './Cube'
 import Grid from './Grid'
 import VolumetricFog from './VolumetricFog'
 import DepthPillars from './DepthPillars'
-import useGameStore from '../store/gameStore'
-import { tileToWorld, CUBE_START } from '../data/layout'
+import useGameStore from '../../store/gameStore'
+import { tileToWorld, CUBE_START } from '../../data/layout'
 
 const BLOOM_ENABLED = true
 

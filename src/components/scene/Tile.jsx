@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Edges } from '@react-three/drei'
 import { useSpring, animated } from '@react-spring/three'
-import useGameStore from '../store/gameStore'
+import useGameStore from '../../store/gameStore'
 
 // A single 1×1 grid tile. Hover/click is handled globally by InteractionPlane;
 // the tile only reads whether it's the hovered cell (a boolean selector, so

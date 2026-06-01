@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import useGameStore from '../store/gameStore'
+import useGameStore from '../../store/gameStore'
 
 // Contextual "Press E" prompt at the bottom-centre of the screen. Appears only
 // while the cube is standing on a project tile (activeProject set) and the

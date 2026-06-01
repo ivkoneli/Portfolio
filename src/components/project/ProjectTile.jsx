@@ -1,9 +1,9 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RoundedBox, Edges, Html } from '@react-three/drei'
-import { tileToWorld } from '../data/layout'
-import useGameStore from '../store/gameStore'
-import { GitHubIcon, YouTubeIcon } from './Icons'
+import { tileToWorld } from '../../data/layout'
+import useGameStore from '../../store/gameStore'
+import { GitHubIcon, YouTubeIcon } from '../ui/Icons'
 
 // ── tile geometry ──────────────────────────────────────────────────────────────
 const TILE_H  = 0.80

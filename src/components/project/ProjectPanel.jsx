@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import useGameStore from '../store/gameStore'
-import portfolioShot from '../data/PortfolioWithFog.png'
-import { GitHubIcon, YouTubeIcon } from './Icons'
+import useGameStore from '../../store/gameStore'
+import portfolioShot from '../../assets/fallback.png'
+import { GitHubIcon, YouTubeIcon } from '../ui/Icons'
 
 // A full-width action button (Play Demo / View Source / Watch Gameplay).
 function ActionButton({ href, bg, bgHover, children }) {
