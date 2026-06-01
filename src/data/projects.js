@@ -1,3 +1,5 @@
+import * as THREE from 'three'
+import { PROJECT_ORIGINS } from './layout'
 import ttt1 from '../assets/projects/tictactoe/1.png'
 import ttt2 from '../assets/projects/tictactoe/2.png'
 import ttt3 from '../assets/projects/tictactoe/3.png'
@@ -19,10 +21,38 @@ import mg4 from '../assets/projects/minigamesplatform/mg4.png'
 import mg5 from '../assets/projects/minigamesplatform/mg5.png'
 import mg6 from '../assets/projects/minigamesplatform/mg6.png'
 
-// All project data lives here.
-// tileOrigin = top-left corner of the 4×4 project zone in grid coordinates.
-// images = carousel screenshots (any aspect ratio — shown fully via object-fit: contain).
+// Build a full tile/card theme from a single base colour. Sections share a base
+// hue and each project gets a slight variation, so the board reads as grouped.
+function makeTheme(hex) {
+  const c = new THREE.Color(hex)
+  const rgb = `${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}`
+  const shade = f => '#' + c.clone().multiplyScalar(f).getHexString()
+  const tint  = f => '#' + c.clone().lerp(new THREE.Color('#ffffff'), f).getHexString()
+  return {
+    hex,
+    rgb,
+    tileDark:     shade(0.10),
+    tileEmissive: shade(0.32),
+    edge:         tint(0.35),
+    text:         tint(0.60),
+  }
+}
+
+// Section colours: GAMES = blues (slight per-project variation), TECH = emerald.
+// (ABOUT ME, when built, will use amber.)
 export const PROJECTS = [
+  {
+    id: 'minigames',
+    name: 'MiniGames Platform',
+    description: 'A web platform of puzzle minigames and trivia, built with TypeScript + Phaser.',
+    longDescription: 'A web-based minigames platform built with TypeScript and the Phaser game engine. It collects a handful of puzzle games alongside trivia across science, history, and math, all under one playable hub. Bundled with Vite and deployed to GitHub Pages — a self-contained showcase of small, focused browser games.',
+    tech: ['TypeScript', 'Phaser', 'Vite'],
+    demoUrl: 'https://ivkoneli.github.io/MiniGames/',
+    repoUrl: 'https://github.com/ivkoneli/MiniGames',
+    images: [mg1, mg2, mg3, mg4, mg5, mg6],
+    tileOrigin: PROJECT_ORIGINS.minigames,
+    theme: makeTheme('#22d3ee'),   // games — cyan
+  },
   {
     id: 'tictactoe',
     name: 'TicTacToe',
@@ -32,35 +62,21 @@ export const PROJECTS = [
     demoUrl: 'https://ivkoneli.github.io/TicTacToe/',
     repoUrl: 'https://github.com/ivkoneli/TicTacToe',
     images: [ttt1, ttt2, ttt3, ttt4],
-    tileOrigin: { col: 1, row: 0 },
-    theme: {
-      hex: '#38bdf8',        // sky blue
-      rgb: '56, 189, 248',
-      tileDark: '#071528',
-      tileEmissive: '#0c2a52',
-      edge: '#7dd3fc',
-      text: '#bae6fd',
-    },
+    tileOrigin: PROJECT_ORIGINS.tictactoe,
+    theme: makeTheme('#38bdf8'),   // games — sky blue
   },
   {
     id: 'knights-gauntlet',
     name: "Knight's Gauntlet",
-    description: 'A turnbased RPG game',
+    description: 'A Unity action game with a Python backend deployed on Railway.',
     longDescription: "Knight's Gauntlet is a Unity (C#) action game where you fight your way through waves of enemies as a knight. What sets it apart from a typical client-only game is a Python backend deployed on Railway: the game talks to a live API for online features like persistent scores and a leaderboard, so it spans the full stack — gameplay and UI on the client, plus a real deployed server behind it.",
     tech: ['Unity', 'C#', 'Python', 'Railway'],
     demoUrl: 'https://ivkoneli.github.io/KnightsGauntlet/',
     repoUrl: 'https://github.com/ivkoneli/KnightsGauntlet',
     youtubeUrl: 'https://youtu.be/eRDzjGHHvr8',
     images: [kg1, kg2, kg3, kg4, kg5],
-    tileOrigin: { col: 14, row: 0 },
-    theme: {
-      hex: '#f59e0b',        // amber / gold — fits the knight theme
-      rgb: '245, 158, 11',
-      tileDark: '#1c0e00',
-      tileEmissive: '#3d1f00',
-      edge: '#fcd34d',
-      text: '#fde68a',
-    },
+    tileOrigin: PROJECT_ORIGINS['knights-gauntlet'],
+    theme: makeTheme('#6366f1'),   // games — indigo
   },
   {
     id: 'shader-pipelines',
@@ -71,34 +87,8 @@ export const PROJECTS = [
     repoUrl: 'https://github.com/ivkoneli/ShaderPipelinesDiplomski',
     youtubeUrl: 'https://youtu.be/gyD2RhK9JoE',
     images: [shp1, shp2, shp3, shp4, shp5],
-    tileOrigin: { col: 14, row: 14 },
-    theme: {
-      hex: '#10b981',        // emerald
-      rgb: '16, 185, 129',
-      tileDark: '#021a0e',
-      tileEmissive: '#044d29',
-      edge: '#6ee7b7',
-      text: '#a7f3d0',
-    },
-  },
-  {
-    id: 'minigames',
-    name: 'MiniGames Platform',
-    description: 'A web platform of puzzle minigames and trivia, built with TypeScript + Phaser.',
-    longDescription: 'A web-based minigames platform built with TypeScript and the Phaser game engine. It collects a handful of puzzle games alongside trivia across science, history, and math, all under one playable hub. Bundled with Vite and deployed to GitHub Pages — a self-contained showcase of small, focused browser games.',
-    tech: ['TypeScript', 'Phaser', 'Vite'],
-    demoUrl: 'https://ivkoneli.github.io/MiniGames/',
-    repoUrl: 'https://github.com/ivkoneli/MiniGames',
-    images: [mg1, mg2, mg3, mg4, mg5, mg6],
-    tileOrigin: { col: 1, row: 14 },
-    theme: {
-      hex: '#f43f5e',        // rose
-      rgb: '244, 63, 94',
-      tileDark: '#1a0610',
-      tileEmissive: '#4c0519',
-      edge: '#fda4af',
-      text: '#fecdd3',
-    },
+    tileOrigin: PROJECT_ORIGINS['shader-pipelines'],
+    theme: makeTheme('#10b981'),   // tech — emerald
   },
 ]
 

@@ -1,53 +1,68 @@
 // ============================================================
-//  TILE LAYOUT  (20 × 20)
-//  0 = void   (no tile — cube can't step here)
-//  1 = normal tile
-//  2 = project tile (marks top-left corner of a 4×4 zone)
+//  TILE LAYOUT  (cross / T board, generated programmatically)
 //
-//  Read the grid visually: left→right = west→east (+X)
-//                          top→bottom = north→south (+Z)
+//  0 = void   1 = normal road/tile   2 = project platform cell
 //
-//  Project zones (4×4 each, value 2):
-//    P1 TicTacToe   — tileOrigin { col:1,  row:0  }  (top-left)
-//    P2 Placeholder — tileOrigin { col:14, row:0  }  (top-right)
-//    P3 Placeholder — tileOrigin { col:14, row:14 }  (bottom-right)
-//    P4 Placeholder — tileOrigin { col:1,  row:14 }  (bottom-left)
+//  You spawn at the bottom on a START pad, cross the BRIDGE forward (north)
+//  to the central HUB, then branch:
+//     ← left  = GAMES  (MiniGames, TicTacToe, Knight's Gauntlet)
+//     → right = TECH   (Shader Pipelines)
+//     ↑ up    = ABOUT ME  (plaza placeholder for the stats holograms)
 //
-//  Roads:
-//    Top    — row 4,  cols 2–16  (connects P1 ↔ P2)
-//    Spokes — cols 9 & 10, rows 5–12  (hub between the two roads)
-//    Bottom — row 13, cols 2–16  (connects P4 ↔ P3)
-//
-//  col →   0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19
+//  Each project sits on its OWN short spur off the arm road, spaced apart.
+//  Grid is centered at the world origin by tileToWorld().
 // ============================================================
-export const LAYOUT = [
-  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 0   P1 & P2 (4×4 top rows)
-  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 1
-  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 2
-  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 3
-  [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0], // row 4   top road (cols 2-16)
-  [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0], // row 5   vertical spokes
-  [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0], // row 6
-  [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0], // row 7
-  [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0], // row 8
-  [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0], // row 9
-  [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0], // row 10
-  [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0], // row 11
-  [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0], // row 12
-  [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0], // row 13  bottom road (cols 2-16)
-  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 14  P4 & P3 (4×4 bottom rows)
-  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 15
-  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 16
-  [0,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0], // row 17
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // row 18
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // row 19
-]
+export const ROWS = 24
+export const COLS = 27
 
-export const ROWS = LAYOUT.length       // 20
-export const COLS = LAYOUT[0].length    // 20
+// Top-left corner of each project's 4×4 platform (single source of truth;
+// projects.js reads these so data and layout never drift apart).
+// The three GAMES sit far left, well spaced, each joined to the collector by
+// its OWN little horizontal bridge; SHADER sits at the right.
+export const PROJECT_ORIGINS = {
+  minigames:          { col: 1,  row: 2 },   // games — top of the left cluster
+  tictactoe:          { col: 2,  row: 9 },   // games — middle (slightly inset)
+  'knights-gauntlet': { col: 1,  row: 16 },  // games — bottom of the left cluster
+  'shader-pipelines': { col: 19, row: 5 },   // tech  — right
+}
 
-// Convert grid coordinates to world XZ position.
-// Grid is centered at world origin: x ∈ [-9.5, 9.5], z ∈ [-9.5, 9.5]
+// Spawn at the bottom of the bridge (empty surroundings).
+export const CUBE_START = { col: 13, row: 21 }
+
+function buildLayout() {
+  const g = Array.from({ length: ROWS }, () => Array(COLS).fill(0))
+  const set1  = (c, r) => { if (r >= 0 && r < ROWS && c >= 0 && c < COLS && g[r][c] === 0) g[r][c] = 1 }
+  const hRoad = (c0, c1, r) => { for (let c = c0; c <= c1; c++) set1(c, r) }
+  const vRoad = (c, r0, r1) => { for (let r = r0; r <= r1; r++) set1(c, r) }
+  const plaza = (col, row, w, h) => { for (let r = row; r < row + h; r++) for (let c = col; c < col + w; c++) set1(c, r) }
+  const platform = ({ col, row }) => { for (let r = row; r < row + 4; r++) for (let c = col; c < col + 4; c++) g[r][c] = 2 }
+
+  // Spine: about road (north) → hub → bridge (south), all on col 13.
+  vRoad(13, 4, 19)
+  // Main walkway: hub → games collector.
+  hRoad(9, 13, 10)
+  // Collector at the cluster end (vertical link between the three game bridges).
+  vRoad(9, 4, 17)
+  // Each game's own little horizontal bridge out to the collector (varying).
+  hRoad(5, 9, 4)    // minigames (top)
+  hRoad(6, 9, 10)   // tictactoe (middle — shorter, inset)
+  hRoad(5, 9, 17)   // knights   (bottom)
+  // Right arm + short spur up to the Shader platform.
+  hRoad(13, 20, 10)
+  vRoad(20, 9, 9)
+  // Start pad (empty around it) and About-Me plaza up top.
+  plaza(12, 20, 3, 3)
+  plaza(12, 0, 4, 4)
+
+  // Project platforms.
+  Object.values(PROJECT_ORIGINS).forEach(platform)
+
+  return g
+}
+
+export const LAYOUT = buildLayout()
+
+// Convert grid coordinates to world XZ position (grid centered at origin).
 export function tileToWorld(col, row) {
   return [
     col - (COLS - 1) / 2,
@@ -56,10 +71,7 @@ export function tileToWorld(col, row) {
   ]
 }
 
-// Cube starts on the top road, near P1
-export const CUBE_START = { col: 4, row: 4 }
-
-// Convert a world XZ point back to the nearest grid cell (inverse of tileToWorld).
+// Inverse of tileToWorld: nearest grid cell for a world XZ point.
 export function worldToTile(x, z) {
   return {
     col: Math.round(x + (COLS - 1) / 2),

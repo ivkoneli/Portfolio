@@ -21,13 +21,14 @@ export default function IntroOverlay() {
   const [gone, setGone] = useState(false)
 
   useEffect(() => {
+    // Stays until the user actually moves — a click or an arrow key.
     const hide = () => setHidden(true)
-    const timer = setTimeout(hide, 5000)
-    window.addEventListener('keydown', hide, { once: true })
+    const ARROWS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
+    const onKey = e => { if (ARROWS.includes(e.key)) hide() }
+    window.addEventListener('keydown', onKey)
     window.addEventListener('pointerdown', hide, { once: true })
     return () => {
-      clearTimeout(timer)
-      window.removeEventListener('keydown', hide)
+      window.removeEventListener('keydown', onKey)
       window.removeEventListener('pointerdown', hide)
     }
   }, [])
