@@ -4,6 +4,7 @@ import './index.css'
 import Scene from './components/scene/Scene'
 import ProjectPanel from './components/project/ProjectPanel'
 import InteractHint from './components/interaction/InteractHint'
+import IntroOverlay from './components/ui/IntroOverlay'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -11,6 +12,7 @@ createRoot(document.getElementById('root')).render(
       <Scene />
       <ProjectPanel />
       <InteractHint />
+      <IntroOverlay />
     </>
   </StrictMode>
 )

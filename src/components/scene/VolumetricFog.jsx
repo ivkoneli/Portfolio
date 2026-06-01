@@ -13,12 +13,12 @@ const EDGE = new THREE.Color('#0e1336')   // dark but NOT black — texture stil
 const CENTER_TINTS = ['#7c8ade', '#8a76dc', '#6a95de', '#9a86d6', '#6f80d0']
 
 const RINGS = [
-  { r: 0,  count: 3 },
-  { r: 8,  count: 7 },
-  { r: 16, count: 11 },
-  { r: 25, count: 14 },
-  { r: 35, count: 16 },
-  { r: 45, count: 18 },
+  { r: 0,  count: 4 },
+  { r: 8,  count: 9 },
+  { r: 16, count: 14 },
+  { r: 25, count: 18 },
+  { r: 35, count: 21 },
+  { r: 45, count: 24 },
 ]
 const MAX_R = 47
 
@@ -49,9 +49,11 @@ export default function VolumetricFog() {
           seed: n,
           position: [x, -2.6 - t * 0.8 - (n % 3) * 0.25, z],
           bounds: [size, 2.4 + t * 1.4, size],
-          segments: Math.round(12 + t * 7),
-          volume: 4 + t * 5 + r2 * 1.5,
-          opacity: 0.6 - t * 0.14,
+          segments: Math.round(13 + t * 7),
+          volume: 4.6 + t * 5.5 + r2 * 1.5,
+          opacity: 0.74 - t * 0.12,
+          // very subtle, slightly de-synced drift per cloud
+          speed: 0.05 + r2 * 0.07,
           color,
         })
       }
@@ -60,7 +62,7 @@ export default function VolumetricFog() {
   }, [])
 
   return (
-    <Clouds material={THREE.MeshLambertMaterial} limit={1600} frustumCulled={false}>
+    <Clouds material={THREE.MeshLambertMaterial} limit={2200} frustumCulled={false}>
       {clouds.map(c => (
         <Cloud
           key={c.seed}
@@ -72,7 +74,7 @@ export default function VolumetricFog() {
           opacity={c.opacity}
           color={c.color}
           growth={5}
-          speed={0}
+          speed={c.speed}
           fade={28}
         />
       ))}
