@@ -1,9 +1,37 @@
 import { useEffect, useState } from 'react'
 import useGameStore from '../store/gameStore'
 import portfolioShot from '../data/PortfolioWithFog.png'
+import { GitHubIcon, YouTubeIcon } from './Icons'
 
-// Carousel slides — the same shot ×5 for now (swap to per-project images later).
-const SLIDES = [portfolioShot, portfolioShot, portfolioShot, portfolioShot, portfolioShot]
+// A full-width action button (Play Demo / View Source / Watch Gameplay).
+function ActionButton({ href, bg, bgHover, children }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        background: bg,
+        color: '#fff',
+        borderRadius: '8px',
+        padding: '11px 20px',
+        fontSize: '13px',
+        fontWeight: 700,
+        textDecoration: 'none',
+        flexShrink: 0,
+        transition: 'background 0.15s ease',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = bgHover }}
+      onMouseLeave={e => { e.currentTarget.style.background = bg }}
+    >
+      {children}
+    </a>
+  )
+}
 
 const ACCENT = '#c084fc'
 
@@ -13,15 +41,19 @@ export default function ProjectPanel() {
   const setDetailProject = useGameStore(s => s.setDetailProject)
   const [slide, setSlide] = useState(0)
 
+  // Per-project screenshots; fall back to the shared shot if a project has none.
+  const slides = detailProject?.images?.length ? detailProject.images : [portfolioShot]
+
   // Reset to the first slide whenever a different project is opened.
   useEffect(() => { setSlide(0) }, [detailProject])
 
   useEffect(() => {
     if (!detailProject) return
+    const count = detailProject.images?.length || 1
     function onKey(e) {
       if (e.key === 'Escape') setDetailProject(null)
-      if (e.key === 'ArrowRight') setSlide(s => (s + 1) % SLIDES.length)
-      if (e.key === 'ArrowLeft')  setSlide(s => (s - 1 + SLIDES.length) % SLIDES.length)
+      if (e.key === 'ArrowRight') setSlide(s => (s + 1) % count)
+      if (e.key === 'ArrowLeft')  setSlide(s => (s - 1 + count) % count)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -29,8 +61,8 @@ export default function ProjectPanel() {
 
   if (!detailProject) return null
 
-  const next = () => setSlide(s => (s + 1) % SLIDES.length)
-  const prev = () => setSlide(s => (s - 1 + SLIDES.length) % SLIDES.length)
+  const next = () => setSlide(s => (s + 1) % slides.length)
+  const prev = () => setSlide(s => (s - 1 + slides.length) % slides.length)
 
   const arrowStyle = side => ({
     position: 'absolute',
@@ -122,13 +154,25 @@ export default function ProjectPanel() {
             willChange: 'transform',          // own compositing layer — don't re-raster siblings
             backfaceVisibility: 'hidden',
           }}>
-            {SLIDES.map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt={`${detailProject.name} screenshot ${i + 1}`}
-                style={{ flex: '0 0 100%', width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              />
+            {slides.map((src, i) => (
+              // Each slide: the image shown FULLY (contain) over a blurred copy
+              // that fills the letterbox bars, so any aspect ratio looks clean.
+              <div key={i} style={{ flex: '0 0 100%', position: 'relative', height: '100%', overflow: 'hidden' }}>
+                <img
+                  src={src}
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute', inset: 0, width: '100%', height: '100%',
+                    objectFit: 'cover', transform: 'scale(1.15)',
+                    filter: 'blur(20px) brightness(0.45)',
+                  }}
+                />
+                <img
+                  src={src}
+                  alt={`${detailProject.name} screenshot ${i + 1}`}
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+              </div>
             ))}
           </div>
           <button onClick={prev} style={arrowStyle('left')} aria-label="Previous">‹</button>
@@ -137,7 +181,7 @@ export default function ProjectPanel() {
 
         {/* Instagram-style dots — grey, accent on the current slide */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '12px' }}>
-          {SLIDES.map((_, i) => (
+          {slides.map((_, i) => (
             <button
               key={i}
               onClick={() => setSlide(i)}
@@ -193,30 +237,24 @@ export default function ProjectPanel() {
         ))}
       </div>
 
-      {/* CTA — pinned at the bottom (the panel's bottom padding is the margin) */}
-      {detailProject.demoUrl && (
-        <a
-          href={detailProject.demoUrl}
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            display: 'block',
-            background: '#6c63ff',
-            color: '#fff',
-            borderRadius: '8px',
-            padding: '12px 20px',
-            fontSize: '13px',
-            fontWeight: 700,
-            textDecoration: 'none',
-            textAlign: 'center',
-            flexShrink: 0,
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = '#7c74ff'}
-          onMouseLeave={e => e.currentTarget.style.background = '#6c63ff'}
-        >
-          ▶ Play Demo
-        </a>
-      )}
+      {/* Action buttons — pinned at the bottom (the panel's bottom padding is the margin) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexShrink: 0 }}>
+        {detailProject.demoUrl && (
+          <ActionButton href={detailProject.demoUrl} bg="#6c63ff" bgHover="#7c74ff">
+            ▶ Play Demo
+          </ActionButton>
+        )}
+        {detailProject.repoUrl && (
+          <ActionButton href={detailProject.repoUrl} bg="#24292e" bgHover="#30363d">
+            <GitHubIcon size={16} /> View Source
+          </ActionButton>
+        )}
+        {detailProject.youtubeUrl && (
+          <ActionButton href={detailProject.youtubeUrl} bg="#cc0000" bgHover="#e60000">
+            <YouTubeIcon size={16} /> Watch Gameplay
+          </ActionButton>
+        )}
+      </div>
     </div>
   )
 }

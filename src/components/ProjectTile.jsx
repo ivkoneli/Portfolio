@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { RoundedBox, Edges, Html } from '@react-three/drei'
 import { tileToWorld, worldToTile } from '../data/layout'
 import useGameStore from '../store/gameStore'
+import { GitHubIcon, YouTubeIcon } from './Icons'
 
 // ── tile geometry ──────────────────────────────────────────────────────────────
 const TILE_H  = 0.80
@@ -164,37 +165,77 @@ export default function ProjectTile({ tileOrigin, active, project }) {
                 ))}
               </div>
 
-              <button
-                onClick={() => setDetailProject(project)}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  background: active ? `rgba(${rgb}, 0.75)` : `rgba(${rgb}, 0.18)`,
-                  border: `1px solid rgba(${rgb}, ${borderAlpha})`,
-                  color: '#fff',
-                  borderRadius: '8px',
-                  padding: '12px 0',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  letterSpacing: '0.05em',
-                  transition: 'background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease',
-                  flexShrink: 0,
-                  pointerEvents: 'auto',   // …but the button itself stays clickable/hoverable
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = `rgba(${rgb}, 0.95)`
-                  e.currentTarget.style.transform = 'translateY(-2px)'
-                  e.currentTarget.style.boxShadow = `0 6px 18px rgba(${rgb}, 0.5)`
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = active ? `rgba(${rgb}, 0.75)` : `rgba(${rgb}, 0.18)`
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  e.currentTarget.style.boxShadow = 'none'
-                }}
-              >
-                View More {active ? '(E) ' : ''}→
-              </button>
+              <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                <button
+                  onClick={() => setDetailProject(project)}
+                  style={{
+                    flex: 1,
+                    background: active ? `rgba(${rgb}, 0.75)` : `rgba(${rgb}, 0.18)`,
+                    border: `1px solid rgba(${rgb}, ${borderAlpha})`,
+                    color: '#fff',
+                    borderRadius: '8px',
+                    padding: '12px 0',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    letterSpacing: '0.05em',
+                    transition: 'background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease',
+                    pointerEvents: 'auto',   // …but the button itself stays clickable/hoverable
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = `rgba(${rgb}, 0.95)`
+                    e.currentTarget.style.transform = 'translateY(-2px)'
+                    e.currentTarget.style.boxShadow = `0 6px 18px rgba(${rgb}, 0.5)`
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = active ? `rgba(${rgb}, 0.75)` : `rgba(${rgb}, 0.18)`
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
+                >
+                  View More {active ? '(E) ' : ''}→
+                </button>
+
+                {[
+                  project.repoUrl    && { href: project.repoUrl,    title: 'View source on GitHub', Icon: GitHubIcon },
+                  project.youtubeUrl && { href: project.youtubeUrl, title: 'Watch gameplay',        Icon: YouTubeIcon },
+                ].filter(Boolean).map(({ href, title, Icon }) => (
+                  <a
+                    key={href}
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={title}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '44px',
+                      flexShrink: 0,
+                      background: `rgba(${rgb}, 0.18)`,
+                      border: `1px solid rgba(${rgb}, ${borderAlpha})`,
+                      borderRadius: '8px',
+                      color: '#fff',
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      transition: 'background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease',
+                      pointerEvents: 'auto',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = `rgba(${rgb}, 0.55)`
+                      e.currentTarget.style.transform = 'translateY(-2px)'
+                      e.currentTarget.style.boxShadow = `0 6px 18px rgba(${rgb}, 0.5)`
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = `rgba(${rgb}, 0.18)`
+                      e.currentTarget.style.transform = 'translateY(0)'
+                      e.currentTarget.style.boxShadow = 'none'
+                    }}
+                  >
+                    <Icon size={18} />
+                  </a>
+                ))}
+              </div>
             </div>
           </Html>
         </>
