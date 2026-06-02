@@ -65,13 +65,8 @@ export default function ProjectTile({ tileOrigin, active, project, metalMaps }) 
 
       {project && (
         <>
-          <pointLight
-            position={[0, LIGHT_Y, 0]}
-            color={theme.hex}
-            intensity={active ? 4.0 : 2.0}
-            distance={8}
-            decay={2}
-          />
+          {/* Emissive orb only — bloom makes it glow without the cost of a real
+              point light (mobile perf: one fewer forward light per project). */}
           <mesh position={[0, LIGHT_Y, 0]}>
             <sphereGeometry args={[0.07, 8, 8]} />
             <meshStandardMaterial

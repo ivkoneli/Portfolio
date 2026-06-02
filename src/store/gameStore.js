@@ -14,6 +14,7 @@ const useGameStore = create((set) => ({
   suppressClick: false, // true after a drag-pan so the release doesn't move the cube
   aboutActive:  false,  // cube is right next to the About hologram (it's powered on)
   aboutOpen:    false,  // the About / profile panel is open
+  sceneReady:   false,  // loading screen finished — scene is fully visible
 
   setCubePos:        (pos) => set({ cubePos: pos }),
   setIsAnimating:    (v)   => set({ isAnimating: v }),
@@ -27,6 +28,7 @@ const useGameStore = create((set) => ({
   setSuppressClick:  (v)   => set({ suppressClick: v }),
   setAboutActive:    (v)   => set({ aboutActive: v }),
   setAboutOpen:      (v)   => set({ aboutOpen: v }),
+  setSceneReady:     (v)   => set({ sceneReady: v }),
 }))
 
 export default useGameStore

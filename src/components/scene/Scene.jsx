@@ -169,8 +169,9 @@ function CameraFollow() {
     t.x += (cx - t.x) * LERP
     t.z += (cz - t.z) * LERP
 
-    // When the cube finishes a move, glide the pan offset back onto the cube.
-    if (wasAnimRef.current && !isAnimating) recenterRef.current = true
+    // The moment a move STARTS, glide the pan offset back onto the cube, so the
+    // view recentres during the move instead of doing a second motion after it.
+    if (!wasAnimRef.current && isAnimating) recenterRef.current = true
     wasAnimRef.current = isAnimating
     if (recenterRef.current) {
       const p = panRef.current
@@ -197,7 +198,7 @@ function CameraFollow() {
 
 export default function Scene() {
   return (
-    <Canvas shadows>
+    <Canvas shadows dpr={[1, 2]}>
       <color attach="background" args={['#000000']} />
       <CameraFollow />
 

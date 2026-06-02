@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import useGameStore from '../../store/gameStore'
 
-// First-load controls hint. Fades out after a few seconds or on the first
-// input (key / click), then unmounts. Purely informational — pointer-events off.
+// First-load controls hint. Appears ~1s AFTER the scene finished loading, then
+// stays until the first input (key / click) before fading out. Pointer-events off.
 const kbd = {
   display: 'inline-flex',
   alignItems: 'center',
@@ -20,21 +21,34 @@ const kbd = {
 const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
 
 export default function IntroOverlay() {
-  const [hidden, setHidden] = useState(false)
+  const sceneReady = useGameStore(s => s.sceneReady)
+  const [ready, setReady] = useState(false)   // mounted ~1s after the scene loads
+  const [shown, setShown] = useState(false)   // drives the fade-in
+  const [hidden, setHidden] = useState(false) // dismissed by first input
   const [gone, setGone] = useState(false)
 
+  // Appear 1s after the loading screen has finished.
   useEffect(() => {
-    // Stays until the user actually moves — a click or an arrow key.
+    if (!sceneReady) return
+    const t = setTimeout(() => setReady(true), 1000)
+    return () => clearTimeout(t)
+  }, [sceneReady])
+
+  // Fade in on the next frame after mounting, then dismiss on the first input.
+  useEffect(() => {
+    if (!ready) return
+    const raf = requestAnimationFrame(() => setShown(true))
     const hide = () => setHidden(true)
     const ARROWS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
     const onKey = e => { if (ARROWS.includes(e.key)) hide() }
     window.addEventListener('keydown', onKey)
     window.addEventListener('pointerdown', hide, { once: true })
     return () => {
+      cancelAnimationFrame(raf)
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('pointerdown', hide)
     }
-  }, [])
+  }, [ready])
 
   useEffect(() => {
     if (!hidden) return
@@ -42,7 +56,9 @@ export default function IntroOverlay() {
     return () => clearTimeout(t)
   }, [hidden])
 
-  if (gone) return null
+  if (!ready || gone) return null
+
+  const visible = shown && !hidden
 
   return (
     <div style={{
@@ -54,8 +70,8 @@ export default function IntroOverlay() {
       justifyContent: 'center',
       zIndex: 10000,
       pointerEvents: 'none',
-      opacity: hidden ? 0 : 1,
-      transform: `translateY(${hidden ? 8 : 0}px)`,
+      opacity: visible ? 1 : 0,
+      transform: `translateY(${visible ? 0 : 8}px)`,
       transition: 'opacity 0.7s ease, transform 0.7s ease',
     }}>
       <div style={{

@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { useTexture } from '@react-three/drei'
-import { LAYOUT, tileToWorld } from '../../data/layout'
+import { LAYOUT } from '../../data/layout'
 import { PROJECTS } from '../../data/projects'
-import Tile from './Tile'
+import InstancedTiles from './InstancedTiles'
 import AboutIsland from './AboutIsland'
 import ProjectTile from '../project/ProjectTile'
 import HoverHighlight from '../interaction/HoverHighlight'
@@ -55,16 +55,12 @@ export default function Grid() {
       <AboutIsland metalMaps={tex} />
       <PathDots />
       <ClickRipple />
+
+      {/* All walkable tiles in one instanced mesh (one draw call). */}
+      <InstancedTiles material={tileMaterial} />
+
       {LAYOUT.flatMap((row, rowIdx) =>
         row.map((cell, colIdx) => {
-          if (cell === 0) return null
-
-          // Normal tile
-          if (cell === 1) {
-            const [x, y, z] = tileToWorld(colIdx, rowIdx)
-            return <Tile key={`${colIdx}-${rowIdx}`} position={[x, y, z]} col={colIdx} row={rowIdx} material={tileMaterial} />
-          }
-
           // Project tile — render ONE mesh per 3×3 zone (at the origin cell only)
           if (cell === 2 && isProjectOrigin(rowIdx, colIdx)) {
             const project = PROJECTS.find(p =>

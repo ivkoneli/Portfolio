@@ -6,6 +6,7 @@ import ProjectPanel from './components/project/ProjectPanel'
 import ProfilePanel from './components/project/ProfilePanel'
 import InteractHint from './components/interaction/InteractHint'
 import IntroOverlay from './components/ui/IntroOverlay'
+import LoadingScreen from './components/ui/LoadingScreen'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -15,6 +16,7 @@ createRoot(document.getElementById('root')).render(
       <ProfilePanel />
       <InteractHint />
       <IntroOverlay />
+      <LoadingScreen />
     </>
   </StrictMode>
 )
