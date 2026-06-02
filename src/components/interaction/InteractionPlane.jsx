@@ -5,7 +5,7 @@ import { worldToTile, isWalkable } from '../../data/layout'
 // raycasting ~50 separate tile meshes. The mouse always hits it, so there are
 // no gaps, no per-tile precision, and nothing (pedestals/cards) competes for
 // the ray. The hit point maps back to a grid cell.
-const SIZE = 40
+const SIZE = 48
 
 export default function InteractionPlane() {
   const setHoveredTile = useGameStore(s => s.setHoveredTile)

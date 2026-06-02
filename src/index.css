@@ -29,3 +29,13 @@ canvas {
     width: 100% !important;
   }
 }
+
+/* Keep panels scrollable but hide the scrollbar (no visible scroll wheel). */
+.project-panel {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* old Edge/IE */
+}
+.project-panel::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}

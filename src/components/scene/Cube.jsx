@@ -50,8 +50,8 @@ export default function Cube() {
 
   const move = useCallback((dc, dr) => {
     // Read fresh state via getState() — no stale closure risk
-    const { cubePos, isAnimating, detailProject } = useGameStore.getState()
-    if (detailProject) {        // freeze the cube while a project panel is open
+    const { cubePos, isAnimating, detailProject, aboutOpen } = useGameStore.getState()
+    if (detailProject || aboutOpen) {   // freeze the cube while any panel is open
       pathQueue.current = []
       useGameStore.getState().setMoveDest(null)
       useGameStore.getState().setPathTiles([])
@@ -151,9 +151,9 @@ export default function Cube() {
   // Click-to-move: BFS a path to the clicked tile, then roll along it.
   useEffect(() => {
     if (!moveTarget) return
-    const { cubePos, isAnimating, detailProject, setMoveTarget } = useGameStore.getState()
+    const { cubePos, isAnimating, detailProject, aboutOpen, setMoveTarget } = useGameStore.getState()
     setMoveTarget(null)                 // consume the request
-    if (detailProject || isAnimating) return
+    if (detailProject || aboutOpen || isAnimating) return
     const path = findPath(cubePos, moveTarget)
     if (!path || path.length === 0) return
     // Absolute trail tiles (each upcoming landing), drawn as dots until reached.

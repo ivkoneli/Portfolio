@@ -1,8 +1,9 @@
-import { useMemo, useRef } from 'react'
+import { Suspense, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { Edges, Text } from '@react-three/drei'
 import { tileToWorld, ABOUT_ORIGIN } from '../../data/layout'
+import AboutHologram from './AboutHologram'
 
 // Amber centrepiece, distinct from the project sections.
 const ACCENT  = '#f5a623'
@@ -14,11 +15,24 @@ const INNER_Y = TILE_H        // inner 3×3 sits one tile higher than the walkab
 const CTR_Y   = TILE_H * 2     // centre tile sits two tile-heights up
 const OFFS    = [-1, 0, 1]
 
+// Title: stacked text layers extruded backward (−Z) to fake real 3D depth.
+const TITLE_Y      = 8.4
+const TITLE_Z      = 0.25
+const TITLE_DEPTH  = 0.32
+const TITLE_LAYERS = 10
+
 export default function AboutIsland({ metalMaps }) {
   const dotRef   = useRef()
   const lightRef = useRef()
 
   const [cx, , cz] = tileToWorld(ABOUT_ORIGIN.col + 2, ABOUT_ORIGIN.row + 2)
+
+  // Front layer bright, layers behind it fade darker to read as extruded sides.
+  const titleColors = useMemo(() => {
+    const front = new THREE.Color('#ffd98a'), back = new THREE.Color('#7a4408')
+    return Array.from({ length: TITLE_LAYERS }, (_, i) =>
+      '#' + front.clone().lerp(back, i / (TITLE_LAYERS - 1)).getHexString())
+  }, [])
 
   // One shared orange metal material for the dais tiles — same maps as the floor
   // (so it actually reflects), just tinted warm.
@@ -55,27 +69,40 @@ export default function AboutIsland({ metalMaps }) {
         )
       }))}
 
-      {/* Light dot — bigger + stronger than the project orbs */}
-      <pointLight ref={lightRef} position={[0, CTR_Y + 0.8, 0]} color={ACCENT} intensity={6} distance={13} decay={2} />
-      <mesh ref={dotRef} position={[0, CTR_Y + 0.8, 0]}>
+      {/* Holographic bust on the raised centre tile (its own Suspense so the
+          model load doesn't block the rest of the board). */}
+      <Suspense fallback={null}>
+        <AboutHologram />
+      </Suspense>
+
+      {/* Light dot at the pedestal base — reads as the hologram projector.
+          Bigger + stronger than the project orbs. */}
+      <pointLight ref={lightRef} position={[0, CTR_Y + 0.35, 0]} color={ACCENT} intensity={6} distance={13} decay={2} />
+      <mesh ref={dotRef} position={[0, CTR_Y + 0.35, 0]}>
         <sphereGeometry args={[0.13, 16, 16]} />
         <meshStandardMaterial emissive={ACCENT} emissiveIntensity={13} color="#000000" roughness={1} metalness={0} />
       </mesh>
 
       {/* Big title — axis-aligned (not angled like the holo cards), facing the
-          player coming up the spine from the south (+Z). Raised high for model room. */}
-      <Text
-        position={[0, 3.0, 0.2]}
-        fontSize={0.9}
-        color="#ffd98a"
-        anchorX="center"
-        anchorY="middle"
-        outlineWidth={0.018}
-        outlineColor={OUTLINE}
-        toneMapped={false}
-      >
-        ABOUT ME
-      </Text>
+          player coming up the spine (+Z). Layered for real depth, raised high. */}
+      {titleColors.map((c, i) => {
+        const f = i / (TITLE_LAYERS - 1)
+        return (
+          <Text
+            key={i}
+            position={[0, TITLE_Y, TITLE_Z - f * TITLE_DEPTH]}
+            fontSize={0.95}
+            color={c}
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={i === 0 ? 0.02 : 0}
+            outlineColor={OUTLINE}
+            toneMapped={false}
+          >
+            ABOUT ME
+          </Text>
+        )
+      })}
     </group>
   )
 }

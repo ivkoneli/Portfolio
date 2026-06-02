@@ -12,6 +12,8 @@ const useGameStore = create((set) => ({
   pathTiles:    [],     // [{ col, row }] upcoming trail tiles, shrinks as cube lands
   clickPing:    null,   // { col, row, id } last walkable click (drives the ripple)
   suppressClick: false, // true after a drag-pan so the release doesn't move the cube
+  aboutActive:  false,  // cube is right next to the About hologram (it's powered on)
+  aboutOpen:    false,  // the About / profile panel is open
 
   setCubePos:        (pos) => set({ cubePos: pos }),
   setIsAnimating:    (v)   => set({ isAnimating: v }),
@@ -23,6 +25,8 @@ const useGameStore = create((set) => ({
   setPathTiles:      (t)   => set({ pathTiles: t }),
   setClickPing:      (t)   => set({ clickPing: t }),
   setSuppressClick:  (v)   => set({ suppressClick: v }),
+  setAboutActive:    (v)   => set({ aboutActive: v }),
+  setAboutOpen:      (v)   => set({ aboutOpen: v }),
 }))
 
 export default useGameStore
