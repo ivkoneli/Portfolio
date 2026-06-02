@@ -11,6 +11,7 @@ const useGameStore = create((set) => ({
   moveDest:     null,   // { col, row } the cube is currently travelling to, or null
   pathTiles:    [],     // [{ col, row }] upcoming trail tiles, shrinks as cube lands
   clickPing:    null,   // { col, row, id } last walkable click (drives the ripple)
+  suppressClick: false, // true after a drag-pan so the release doesn't move the cube
 
   setCubePos:        (pos) => set({ cubePos: pos }),
   setIsAnimating:    (v)   => set({ isAnimating: v }),
@@ -21,6 +22,7 @@ const useGameStore = create((set) => ({
   setMoveDest:       (t)   => set({ moveDest: t }),
   setPathTiles:      (t)   => set({ pathTiles: t }),
   setClickPing:      (t)   => set({ clickPing: t }),
+  setSuppressClick:  (v)   => set({ suppressClick: v }),
 }))
 
 export default useGameStore

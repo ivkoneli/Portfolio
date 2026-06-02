@@ -32,6 +32,7 @@ function makeTheme(hex) {
     hex,
     rgb,
     tileDark:     shade(0.10),
+    tileBase:     shade(0.60),   // mid-tone so the metal texture reads in the project's colour
     tileEmissive: shade(0.32),
     edge:         tint(0.35),
     text:         tint(0.60),

@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { Suspense, useEffect, useRef } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
-import { EffectComposer, Bloom, ToneMapping, Vignette } from '@react-three/postprocessing'
+import { Environment, Lightformer } from '@react-three/drei'
+import { EffectComposer, Bloom, ToneMapping, Vignette, SMAA } from '@react-three/postprocessing'
 import { BlendFunction, ToneMappingMode } from 'postprocessing'
 import Cube from './Cube'
 import Grid from './Grid'
@@ -57,15 +58,25 @@ function CameraFollow() {
     camera.updateProjectionMatrix()
   }, [camera])
 
-  // Touch gestures: one finger drags to pan, two fingers pinch to zoom. Mouse
-  // wheel also zooms (handy on desktop).
+  // Gestures: one finger / left-mouse drag to pan, two fingers / wheel to zoom.
   useEffect(() => {
     const el = gl.domElement
     let lastDist = null      // two-finger pinch distance
     let lastPan  = null      // { x, y } last one-finger position
+    let lastMouse = null     // { x, y } last left-drag position
+    let dragDist = 0         // accumulated drag length this gesture
+    let suppressed = false   // have we already flagged this drag as a pan?
+
+    // A drag past a few px is a pan, not a click — flag it so the release doesn't
+    // move the cube. Reset at the start of every fresh press.
+    const startGesture = () => { dragDist = 0; suppressed = false; useGameStore.getState().setSuppressClick(false) }
+    const accumDrag = (dx, dy) => {
+      dragDist += Math.hypot(dx, dy)
+      if (dragDist > 6 && !suppressed) { suppressed = true; useGameStore.getState().setSuppressClick(true) }
+    }
 
     const onTouchStart = e => {
-      if (e.touches.length === 1) lastPan = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+      if (e.touches.length === 1) { lastPan = { x: e.touches[0].clientX, y: e.touches[0].clientY }; startGesture() }
     }
     const onTouchMove = e => {
       if (e.touches.length === 2) {
@@ -79,7 +90,9 @@ function CameraFollow() {
         e.preventDefault()
       } else if (e.touches.length === 1 && lastPan) {
         const tch = e.touches[0]
-        panByPixels(tch.clientX - lastPan.x, tch.clientY - lastPan.y)
+        const dx = tch.clientX - lastPan.x, dy = tch.clientY - lastPan.y
+        accumDrag(dx, dy)
+        panByPixels(dx, dy)
         lastPan = { x: tch.clientX, y: tch.clientY }
         e.preventDefault()
       }
@@ -89,6 +102,27 @@ function CameraFollow() {
       if (e.touches.length === 0) lastPan = null
       else if (e.touches.length === 1) lastPan = { x: e.touches[0].clientX, y: e.touches[0].clientY }
     }
+
+    // Desktop: hold left mouse and drag to pan.
+    const onMouseDown = e => {
+      if (e.button !== 0) return
+      lastMouse = { x: e.clientX, y: e.clientY }
+      startGesture()
+    }
+    const onMouseMove = e => {
+      if (!lastMouse) return
+      const dx = e.clientX - lastMouse.x, dy = e.clientY - lastMouse.y
+      accumDrag(dx, dy)
+      panByPixels(dx, dy)
+      lastMouse = { x: e.clientX, y: e.clientY }
+      if (suppressed) el.style.cursor = 'grabbing'
+    }
+    const onMouseUp = e => {
+      if (e.button !== 0) return
+      lastMouse = null
+      el.style.cursor = ''
+    }
+
     const onWheel = e => {
       zoomRef.current = clampZoom(zoomRef.current * (e.deltaY > 0 ? 1.1 : 0.9))
       e.preventDefault()
@@ -113,11 +147,18 @@ function CameraFollow() {
     el.addEventListener('touchmove',  onTouchMove,  { passive: false })
     el.addEventListener('touchend',   onTouchEnd)
     el.addEventListener('wheel',      onWheel, { passive: false })
+    el.addEventListener('mousedown',  onMouseDown)
+    // move/up on window so a drag keeps working past the canvas edge
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup',   onMouseUp)
     return () => {
       el.removeEventListener('touchstart', onTouchStart)
       el.removeEventListener('touchmove',  onTouchMove)
       el.removeEventListener('touchend',   onTouchEnd)
       el.removeEventListener('wheel',      onWheel)
+      el.removeEventListener('mousedown',  onMouseDown)
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup',   onMouseUp)
     }
   }, [gl, camera])
 
@@ -173,7 +214,20 @@ export default function Scene() {
         color="#a5b4fc"
       />
 
-      <Grid />
+      {/* Image-based reflections for the metal tiles, built from coloured light
+          panels (no external HDRI download). Baked once via frames={1}. */}
+      <Environment resolution={256} frames={1}>
+        <Lightformer form="rect" intensity={1.2} color="#46406a" scale={[24, 24, 1]} position={[0, -3, 0]} rotation={[-Math.PI / 2, 0, 0]} />
+        <Lightformer form="rect" intensity={4.5} color="#9a86d6" scale={[12, 12, 1]} position={[0, 14, 0]} rotation={[Math.PI / 2, 0, 0]} />
+        {/* Bright narrow strips → crisp reflection streaks that read as polished metal */}
+        <Lightformer form="rect" intensity={6.0} color="#6a95de" scale={[1.3, 18, 1]} position={[-12, 5, -7]} rotation={[0, Math.PI / 4, 0]} />
+        <Lightformer form="rect" intensity={5.0} color="#8a76dc" scale={[1.3, 18, 1]} position={[12, 5, 7]} rotation={[0, -Math.PI / 4, 0]} />
+        <Lightformer form="rect" intensity={4.5} color="#7da0e0" scale={[1.0, 18, 1]} position={[3, 6, -11]} rotation={[0, Math.PI / 6, 0]} />
+      </Environment>
+
+      <Suspense fallback={null}>
+        <Grid />
+      </Suspense>
       <Cube />
       <DepthPillars />
       <VolumetricFog />
@@ -182,16 +236,21 @@ export default function Scene() {
 
       {BLOOM_ENABLED && (
         <EffectComposer multisampling={0}>
+          {/* mipmapBlur + smoothing makes the bloom temporally stable so small
+              bright points (orbs, path dots, cube edges) stop flickering. */}
           <Bloom
+            mipmapBlur
             blendFunction={BlendFunction.ADD}
-            intensity={2.0}
-            luminanceThreshold={0.2}
-            luminanceSmoothing={0.02}
+            intensity={2.5}
+            luminanceThreshold={0.22}
+            luminanceSmoothing={0.25}
           />
           {/* Foggy bright centre, dark edges — vignette over the whole frame.
               offset = where darkening starts, darkness = how black the edges go. */}
           <Vignette offset={0.6} darkness={0.4} />
           <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+          {/* Post-process antialiasing — the composer bypasses the canvas's own AA. */}
+          <SMAA />
         </EffectComposer>
       )}
     </Canvas>

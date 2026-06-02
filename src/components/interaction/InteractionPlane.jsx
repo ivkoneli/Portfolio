@@ -23,6 +23,8 @@ export default function InteractionPlane() {
   }
   const out   = () => setHoveredTile(null)
   const click = e => {
+    // If the press was a drag-pan, swallow the click so the cube doesn't move.
+    if (useGameStore.getState().suppressClick) return
     const cell = worldToTile(e.point.x, e.point.z)
     if (!isWalkable(cell.col, cell.row)) return
     setMoveTarget(cell)

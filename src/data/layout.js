@@ -38,6 +38,11 @@ export const PROJECT_ORIGINS = {
 // Spawn at the bottom of the bridge (empty surroundings).
 export const CUBE_START = { col: 13, row: 24 }
 
+// Top-left of the 5×5 About-Me island. Only the perimeter ring is walkable; the
+// inner 3×3 is a raised dais drawn as meshes in AboutIsland.jsx. Centred on the
+// spine (col 13) so the bridge meets it dead-centre. Centre = (13, 2).
+export const ABOUT_ORIGIN = { col: 11, row: 0 }
+
 function buildLayout() {
   const g = Array.from({ length: ROWS }, () => Array(COLS).fill(0))
   const set1  = (c, r) => { if (r >= 0 && r < ROWS && c >= 0 && c < COLS && g[r][c] === 0) g[r][c] = 1 }
@@ -62,10 +67,15 @@ function buildLayout() {
   vRoad(22, 10, 12)  // domineering — UP   spur
   vRoad(27, 14, 16)  // tasking     — DOWN spur
   vRoad(32, 10, 12)  // pokemon-go  — UP   spur
-  // Start pad (empty around it) and About-Me plaza. Everything sits 3 rows south
-  // of the top; the plaza stays pinned at the top for clear space above Shader.
+  // Start pad (empty around it).
   plaza(12, 23, 3, 3)
-  plaza(12, 0, 4, 4)
+  // About-Me island: a 5×5 ring you walk around; the inner 3×3 is a raised dais
+  // (drawn in AboutIsland.jsx), so only the perimeter is walkable. Cols 11–15 so
+  // the spine (col 13) meets the south edge dead-centre.
+  hRoad(11, 15, 0)   // ring — north edge
+  hRoad(11, 15, 4)   // ring — south edge (the spine joins here at col 13, centre)
+  vRoad(11, 0, 4)    // ring — west edge
+  vRoad(15, 0, 4)    // ring — east edge
 
   // Project platforms.
   Object.values(PROJECT_ORIGINS).forEach(platform)

@@ -174,7 +174,7 @@ export default function Cube() {
         <group ref={bobRef}>
           <animated.mesh scale={squash.scale} castShadow>
             <boxGeometry args={[1, 1, 1]} />
-            <meshStandardMaterial color="#0a0818" roughness={0.55} metalness={0.05} />
+            <meshStandardMaterial color="#0a0818" roughness={0.55} metalness={0.05} envMapIntensity={0} />
             <Edges color={GLOW_COLOR} lineWidth={3} />
             {/* Light lives inside the mesh → always at cube centre, survives the roll */}
             <pointLight color={GLOW_COLOR} intensity={5} distance={7} decay={2} />

@@ -18,7 +18,7 @@ const CARD_Y  = HALF_H - 0.5
 
 const CARD_SCALE = 0.65
 
-export default function ProjectTile({ tileOrigin, active, project }) {
+export default function ProjectTile({ tileOrigin, active, project, metalMaps }) {
   const meshRef      = useRef()
   const setDetailProject = useGameStore(s => s.setDetailProject)
 
@@ -50,11 +50,15 @@ export default function ProjectTile({ tileOrigin, active, project }) {
         receiveShadow
       >
         <meshStandardMaterial
-          color={theme?.tileDark   ?? '#2e1065'}
+          map={metalMaps?.map}
+          normalMap={metalMaps?.normalMap}
+          normalScale={[0.7, 0.7]}
+          color={theme?.tileBase   ?? '#3b2768'}
           emissive={theme?.tileEmissive ?? '#4c1d95'}
           emissiveIntensity={0.08}
-          roughness={0.75}
-          metalness={0.25}
+          roughness={0.72}
+          metalness={0.75}
+          envMapIntensity={1.0}
         />
         <Edges color={theme?.edge ?? '#f0abfc'} threshold={15} />
       </RoundedBox>
