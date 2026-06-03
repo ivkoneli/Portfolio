@@ -16,6 +16,16 @@ export function YouTubeIcon({ size = 16 }) {
   )
 }
 
+export function MailIcon({ size = 16 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m2 6 10 7L22 6" />
+    </svg>
+  )
+}
+
 export function DownloadIcon({ size = 16 }) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor"

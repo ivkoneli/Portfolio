@@ -4,6 +4,7 @@ import { useSpring, animated } from '@react-spring/three'
 import { Edges } from '@react-three/drei'
 import useGameStore from '../../store/gameStore'
 import useKeyboard from '../../hooks/useKeyboard'
+import { playRoll } from '../../audio/sound'
 import { LAYOUT, ROWS, COLS, tileToWorld, CUBE_START, findPath } from '../../data/layout'
 import { findProjectAtTile } from '../../data/projects'
 
@@ -107,6 +108,9 @@ export default function Cube() {
 
         // Squash on impact, then spring back to a clean cube.
         squashApi.start({ from: { scale: [1.14, 0.82, 1.14] }, to: { scale: [1, 1, 1] } })
+        playRoll()   // cube hits the ground
+
+
 
         setCubePos({ col: nextCol, row: nextRow })
         setActiveProject(

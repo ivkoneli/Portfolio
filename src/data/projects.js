@@ -20,6 +20,24 @@ import mg3 from '../assets/projects/minigamesplatform/mg3.png'
 import mg4 from '../assets/projects/minigamesplatform/mg4.png'
 import mg5 from '../assets/projects/minigamesplatform/mg5.png'
 import mg6 from '../assets/projects/minigamesplatform/mg6.png'
+import dom1 from '../assets/projects/domineering/dom1.png'
+import dom2 from '../assets/projects/domineering/dom2.png'
+import dom3 from '../assets/projects/domineering/dom3.png'
+import dom4 from '../assets/projects/domineering/dom4.png'
+import dom5 from '../assets/projects/domineering/dom5.png'
+import dom6 from '../assets/projects/domineering/dom6.png'
+import tking1 from '../assets/projects/tasking/tking1.jpg'
+import tking2 from '../assets/projects/tasking/tking2.jpg'
+import tking3 from '../assets/projects/tasking/tking3.jpg'
+import tking4 from '../assets/projects/tasking/tking4.jpg'
+import tking5 from '../assets/projects/tasking/tking5.jpg'
+import pgo1 from '../assets/projects/pokemon-go/pgo1.jpg'
+import pgo2 from '../assets/projects/pokemon-go/pgo2.jpg'
+import pgo3 from '../assets/projects/pokemon-go/pgo3.jpg'
+import pgo4 from '../assets/projects/pokemon-go/pgo4.jpg'
+import pgo5 from '../assets/projects/pokemon-go/pgo5.jpg'
+import pgo6 from '../assets/projects/pokemon-go/pgo6.jpg'
+import pgo7 from '../assets/projects/pokemon-go/pgo7.jpg'
 
 // Build a full tile/card theme from a single base colour. Sections share a base
 // hue and each project gets a slight variation, so the board reads as grouped.
@@ -98,6 +116,7 @@ export const PROJECTS = [
     longDescription: "A Python clone of Domineering, the classic combinatorial board game where two players place dominoes in opposing orientations until one of them can't move. Built with pygame for the UI and board interaction, it supports local two-player matches as well as a CPU opponent driven by a custom A*-style search: difficulty scales with how deep the search goes and how far ahead the algorithm predicts. Old-school game AI, the clever hand-written kind from before the LLM era.",
     tech: ['Python', 'pygame', 'A*'],
     repoUrl: 'https://github.com/ivkoneli/Domineering',
+    images: [dom1, dom2, dom3, dom4, dom5, dom6],
     tileOrigin: PROJECT_ORIGINS.domineering,
     theme: makeTheme('#8b5cf6'),   // violet — AI
   },
@@ -108,6 +127,7 @@ export const PROJECTS = [
     longDescription: "TasKing is a work-management web app for organizations, basically a homegrown Jira or ClickUp, built with a React front end and a .NET back end. It lets teams break work into projects and track tasks through their lifecycle, with a MySQL database and hosting on Azure. Built around four years ago; the repository is currently being re-populated, so the full source will land here soon.",
     tech: ['React', '.NET', 'Azure', 'MySQL'],
     repoUrl: 'https://github.com/ivkoneli/TasKing',
+    images: [tking1, tking2, tking3, tking4, tking5],
     tileOrigin: PROJECT_ORIGINS.tasking,
     theme: makeTheme('#14b8a6'),   // teal — full-stack web
   },
@@ -119,6 +139,7 @@ export const PROJECTS = [
     tech: ['Kotlin', 'Firebase'],
     repoUrl: 'https://github.com/ivkoneli/PokemonGo',
     releasesUrl: 'https://github.com/ivkoneli/PokemonGo/releases/tag/v2.0r',
+    images: [pgo1, pgo2, pgo3, pgo4, pgo5, pgo6, pgo7],
     tileOrigin: PROJECT_ORIGINS['pokemon-go'],
     theme: makeTheme('#ef4444'),   // red — mobile
   },

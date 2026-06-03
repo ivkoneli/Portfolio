@@ -1,25 +1,27 @@
 import { useEffect } from 'react'
 import useGameStore from '../../store/gameStore'
-import { GitHubIcon } from '../ui/Icons'
+import { GitHubIcon, MailIcon } from '../ui/Icons'
 
 const ACCENT = '#f5a623'
 const RGB    = '245, 166, 35'
 
 // Placeholder profile content — swap for the real details any time.
 const PROFILE = {
-  name: 'Ivko Neli',
+  name: 'Andrija Ivkovic (Ivkoneli)',
   tagline: 'Software Engineer · Game & Graphics Developer',
-  bio: "I build interactive 3D experiences, games, and full-stack apps. I like shaders, clever algorithms (the pre-LLM kind included), and turning weird ideas into things you can actually click on — like this portfolio you're rolling a cube around in.",
+  bio: "I build interactive 3D experiences, games, and full-stack apps. I like shaders, clever algorithms , and turning weird ideas into things you can actually click on , like this portfolio you're rolling a cube around in.",
   facts: [
     ['Role', 'Software / Game Developer'],
-    ['Focus', 'Real-time graphics · Full-stack'],
-    ['Based in', 'Earth (mostly)'],
+    ['Based in', 'Nis , Serbia'],
     ['Currently', 'Shipping pixels'],
   ],
-  skills: ['React', 'Three.js', 'TypeScript', 'C# / Unity', 'Python', '.NET', 'GLSL/HLSL', 'Kotlin'],
+  skills: ['React', 'Three.js', 'TypeScript', 'C# / Unity', 'Python', '.NET', 'GLSL/HLSL', 'Kotlin',"Pixi.js"],
   githubUrl: 'https://github.com/ivkoneli',
   email: 'ivkoneli.ai@gmail.com',
 }
+
+// Initials from the name (ignoring any parenthetical), e.g. "Andrija Ivkovic" → "AI".
+const INITIALS = PROFILE.name.replace(/\(.*?\)/g, '').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase()
 
 export default function ProfilePanel() {
   const aboutOpen    = useGameStore(s => s.aboutOpen)
@@ -85,7 +87,7 @@ export default function ProfilePanel() {
         </div>
       </div>
 
-      {/* Avatar ring */}
+      {/* Avatar ring — monogram (swap for an <img src> avatar any time) */}
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px', flexShrink: 0 }}>
         <div style={{
           width: '120px', height: '120px', borderRadius: '50%',
@@ -93,9 +95,11 @@ export default function ProfilePanel() {
           background: `radial-gradient(circle at 50% 35%, rgba(${RGB}, 0.35), rgba(${RGB}, 0.05))`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: `0 0 40px rgba(${RGB}, 0.35), inset 0 0 30px rgba(${RGB}, 0.15)`,
-          fontSize: '46px',
+          fontSize: '42px', fontWeight: 700, letterSpacing: '0.04em',
+          color: '#ffe6b8', textShadow: `0 0 16px rgba(${RGB}, 0.6)`,
+          userSelect: 'none',
         }}>
-          🧑‍💻
+          {INITIALS}
         </div>
       </div>
 
@@ -141,7 +145,7 @@ export default function ProfilePanel() {
           background: `rgba(${RGB}, 0.85)`, color: '#1a1205', borderRadius: '8px', padding: '11px 20px',
           fontSize: '13px', fontWeight: 700, textDecoration: 'none',
         }}>
-          ✉ {PROFILE.email}
+          <MailIcon size={16} /> {PROFILE.email}
         </a>
       </div>
 

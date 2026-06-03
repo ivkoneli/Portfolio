@@ -1,5 +1,6 @@
 import useGameStore from '../../store/gameStore'
 import { worldToTile, isWalkable } from '../../data/layout'
+import { playTile } from '../../audio/sound'
 
 // One invisible plane over the whole grid handles all hover/click, instead of
 // raycasting ~50 separate tile meshes. The mouse always hits it, so there are
@@ -27,6 +28,7 @@ export default function InteractionPlane() {
     if (useGameStore.getState().suppressClick) return
     const cell = worldToTile(e.point.x, e.point.z)
     if (!isWalkable(cell.col, cell.row)) return
+    playTile()                                  // every click on a walkable tile
     setMoveTarget(cell)
     setClickPing({ ...cell, id: Date.now() })   // fresh id restarts the ripple
   }

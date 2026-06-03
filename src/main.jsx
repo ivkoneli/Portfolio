@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import './audio/sound'   // installs the global UI-click sound listener
 import Scene from './components/scene/Scene'
 import ProjectPanel from './components/project/ProjectPanel'
 import ProfilePanel from './components/project/ProfilePanel'

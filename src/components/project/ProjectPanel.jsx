@@ -185,8 +185,8 @@ export default function ProjectPanel() {
               </div>
             ))}
           </div>
-          <button onClick={prev} style={arrowStyle('left')} aria-label="Previous">‹</button>
-          <button onClick={next} style={arrowStyle('right')} aria-label="Next">›</button>
+          <button data-silent onClick={prev} style={arrowStyle('left')} aria-label="Previous">‹</button>
+          <button data-silent onClick={next} style={arrowStyle('right')} aria-label="Next">›</button>
         </div>
 
         {/* Instagram-style dots — grey, accent on the current slide */}
@@ -194,6 +194,7 @@ export default function ProjectPanel() {
           {slides.map((_, i) => (
             <button
               key={i}
+              data-silent
               onClick={() => setSlide(i)}
               aria-label={`Go to slide ${i + 1}`}
               style={{
