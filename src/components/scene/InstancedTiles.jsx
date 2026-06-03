@@ -2,7 +2,7 @@ import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import useGameStore from '../../store/gameStore'
-import { LAYOUT, tileToWorld } from '../../data/layout'
+import { LAYOUT, tileToWorld, isPortfolioTile } from '../../data/layout'
 
 // Every walkable tile (cell === 1) drawn as ONE instanced mesh instead of one
 // <mesh> each — hundreds of draw calls collapse to a single one. The hovered
@@ -13,10 +13,14 @@ export default function InstancedTiles({ material }) {
   const meshRef = useRef()
   const dummy   = useMemo(() => new THREE.Object3D(), [])
 
+  // Skip the Portfolio bridge tiles — they're drawn (and animated in) by the
+  // RevealTiles reveal, not by the static floor.
   const tiles = useMemo(() => {
     const out = []
     LAYOUT.forEach((row, r) => row.forEach((cell, c) => {
-      if (cell === 1) { const [x, y, z] = tileToWorld(c, r); out.push({ c, r, x, y, z }) }
+      if (cell === 1 && !isPortfolioTile(c, r)) {
+        const [x, y, z] = tileToWorld(c, r); out.push({ c, r, x, y, z })
+      }
     }))
     return out
   }, [])

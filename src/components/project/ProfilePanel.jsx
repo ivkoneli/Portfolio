@@ -1,6 +1,10 @@
 import { useEffect } from 'react'
 import useGameStore from '../../store/gameStore'
+import { PORTFOLIO_ENTRY } from '../../data/layout'
+import { REVEAL } from '../../anim/reveal'
 import { GitHubIcon, MailIcon } from '../ui/Icons'
+
+const PORTFOLIO_RGB = '192, 132, 252'   // the cube's violet — matches the secret island
 
 const ACCENT = '#f5a623'
 const RGB    = '245, 166, 35'
@@ -33,6 +37,17 @@ export default function ProfilePanel() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [aboutOpen, setAboutOpen])
+
+  // Close the profile and unseal the Portfolio (it rises + the bridge pops in),
+  // then — once the reveal has played — roll the cube over; Cube opens its card
+  // when it lands there (portfolioAutoOpen).
+  const explorePortfolio = () => {
+    const s = useGameStore.getState()
+    s.setAboutOpen(false)
+    s.setPortfolioRevealed(true)
+    s.setPortfolioAutoOpen(true)
+    setTimeout(() => useGameStore.getState().setMoveTarget({ ...PORTFOLIO_ENTRY }), REVEAL.autoRollAfter * 1000)
+  }
 
   if (!aboutOpen) return null
 
@@ -133,6 +148,22 @@ export default function ProfilePanel() {
 
       {/* Links */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexShrink: 0, marginTop: 'auto' }}>
+        {/* Primary CTA — opens the secret Portfolio island behind this one. */}
+        <button
+          onClick={explorePortfolio}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            background: `rgba(${PORTFOLIO_RGB}, 0.9)`, color: '#15102a', borderRadius: '8px',
+            padding: '12px 20px', fontSize: '13px', fontWeight: 800, letterSpacing: '0.02em',
+            border: 'none', cursor: 'pointer',
+            boxShadow: `0 0 26px rgba(${PORTFOLIO_RGB}, 0.45)`,
+            transition: 'background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = `rgba(${PORTFOLIO_RGB}, 1)`; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 6px 30px rgba(${PORTFOLIO_RGB}, 0.6)` }}
+          onMouseLeave={e => { e.currentTarget.style.background = `rgba(${PORTFOLIO_RGB}, 0.9)`; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = `0 0 26px rgba(${PORTFOLIO_RGB}, 0.45)` }}
+        >
+          Explore This Portfolio →
+        </button>
         <a href={PROFILE.githubUrl} target="_blank" rel="noreferrer" style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
           background: '#24292e', color: '#fff', borderRadius: '8px', padding: '11px 20px',
@@ -147,18 +178,6 @@ export default function ProfilePanel() {
         }}>
           <MailIcon size={16} /> {PROFILE.email}
         </a>
-      </div>
-
-      {/* Attribution for the CC BY 4.0 bust model. */}
-      <div style={{
-        marginTop: '16px', paddingTop: '12px', flexShrink: 0,
-        borderTop: `1px solid rgba(${RGB}, 0.12)`,
-        fontSize: '10px', lineHeight: 1.5, color: '#6b5a3a',
-      }}>
-        Hologram bust:{' '}
-        <a href="https://sketchfab.com/3d-models/male-head-0247a25a04ba46b99629130277fe39b7" target="_blank" rel="noreferrer" style={{ color: '#8a7752' }}>“Male Head”</a>
-        {' '}by Alexander Antipov, licensed{' '}
-        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer" style={{ color: '#8a7752' }}>CC BY 4.0</a>.
       </div>
     </div>
   )

@@ -2,8 +2,26 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RoundedBox, Edges, Html } from '@react-three/drei'
 import { tileToWorld } from '../../data/layout'
+import { REVEAL } from '../../anim/reveal'
 import useGameStore from '../../store/gameStore'
 import { GitHubIcon, YouTubeIcon, DownloadIcon } from '../ui/Icons'
+
+// CSS-var timings for the holo-card reveal (consumed by `.holo-card-reveal` in
+// index.css). Content blocks start once the card has opened, then stagger.
+function cardRevealVars() {
+  const c = REVEAL.card
+  const base = c.delay + c.reveal * 0.78 + c.contentGap
+  return {
+    '--rev-delay':   `${c.delay}s`,
+    '--rev-dur':     `${c.reveal}s`,
+    '--content-dur': `${c.contentDur}s`,
+    '--c1': `${base}s`,
+    '--c2': `${base + c.stagger}s`,
+    '--c3': `${base + c.stagger * 2}s`,
+    '--c4': `${base + c.stagger * 3}s`,
+    '--c5': `${base + c.stagger * 4}s`,
+  }
+}
 
 // ── tile geometry ──────────────────────────────────────────────────────────────
 const TILE_H  = 0.80
@@ -18,7 +36,7 @@ const CARD_Y  = HALF_H - 0.5
 
 const CARD_SCALE = 0.65
 
-export default function ProjectTile({ tileOrigin, active, project, metalMaps }) {
+export default function ProjectTile({ tileOrigin, active, project, metalMaps, revealAnim = false, occludeRefs }) {
   const meshRef      = useRef()
   const setDetailProject = useGameStore(s => s.setDetailProject)
 
@@ -86,8 +104,12 @@ export default function ProjectTile({ tileOrigin, active, project, metalMaps }) 
             scale={CARD_SCALE}
             style={{ pointerEvents: 'none' }}
             zIndexRange={[10, 0]}
+            occlude={occludeRefs}
           >
-            <div style={{
+            <div
+              className={revealAnim ? 'holo-card-reveal' : undefined}
+              style={{
+              ...(revealAnim ? cardRevealVars() : null),
               transform: `translate(-50%, -100%) scale(${active ? 1.05 : 1})`,
               transformOrigin: 'center bottom',
               transition: 'transform 0.25s ease, box-shadow 0.25s ease',

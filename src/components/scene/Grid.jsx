@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useTexture } from '@react-three/drei'
-import { LAYOUT } from '../../data/layout'
+import { LAYOUT, portfolioBridgeTiles } from '../../data/layout'
 import { PROJECTS } from '../../data/projects'
 import InstancedTiles from './InstancedTiles'
 import AboutIsland from './AboutIsland'
@@ -11,6 +11,9 @@ import DestinationMarker from '../interaction/DestinationMarker'
 import PathDots from '../interaction/PathDots'
 import ClickRipple from '../interaction/ClickRipple'
 import InteractionPlane from '../interaction/InteractionPlane'
+import Reveal from '../anim/Reveal'
+import RevealTiles from '../anim/RevealTiles'
+import { REVEAL } from '../../anim/reveal'
 import useGameStore from '../../store/gameStore'
 import colorUrl  from '../../assets/textures/metalTile/Metal061B_1K-JPG_Color.jpg'
 import normalUrl from '../../assets/textures/metalTile/Metal061B_1K-JPG_NormalGL.jpg'
@@ -23,12 +26,18 @@ function isProjectOrigin(rowIdx, colIdx) {
 }
 
 export default function Grid() {
-  const activeProject = useGameStore(s => s.activeProject)
+  const activeProject      = useGameStore(s => s.activeProject)
+  const portfolioRevealed  = useGameStore(s => s.portfolioRevealed)
 
   // Shared worn-metal material. COLOUR + NORMAL maps (the normal gives the worn
   // dents/scratches via diffuse shading) but NO roughness map — that one varies
   // shininess per-pixel and was the real flicker source. Reduced normalScale +
   // uniform soft roughness keep the reflective sheen gliding cleanly.
+  const bridgeTiles = useMemo(() => portfolioBridgeTiles(), [])
+  // The ABOUT-ME title occludes the portfolio card (it sits behind it), so the
+  // HTML card stops drawing over the 3D text. Raycast occlude — NOT 'blending'.
+  const aboutTitleRef = useRef()
+
   const tex = useTexture({ map: colorUrl, normalMap: normalUrl })
   const tileMaterial = useMemo(() => {
     tex.map.colorSpace = THREE.SRGBColorSpace
@@ -52,12 +61,17 @@ export default function Grid() {
       <InteractionPlane />
       <HoverHighlight />
       <DestinationMarker />
-      <AboutIsland metalMaps={tex} />
+      <AboutIsland metalMaps={tex} titleRef={aboutTitleRef} />
       <PathDots />
       <ClickRipple />
 
       {/* All walkable tiles in one instanced mesh (one draw call). */}
       <InstancedTiles material={tileMaterial} />
+
+      {/* Stage 2 of the reveal: the bridge tiles pop in toward the platform. */}
+      {portfolioRevealed && (
+        <RevealTiles tiles={bridgeTiles} material={tileMaterial} {...REVEAL.tiles} />
+      )}
 
       {LAYOUT.flatMap((row, rowIdx) =>
         row.map((cell, colIdx) => {
@@ -66,16 +80,25 @@ export default function Grid() {
             const project = PROJECTS.find(p =>
               p.tileOrigin.col === colIdx && p.tileOrigin.row === rowIdx
             )
+            // Portfolio platform stays hidden until it's revealed from the panel.
+            const isPortfolio = project?.id === 'portfolio'
+            if (isPortfolio && !portfolioRevealed) return null
             const isActive = activeProject?.id === project?.id
-            return (
+            const tile = (
               <ProjectTile
                 key={`proj-${colIdx}-${rowIdx}`}
                 tileOrigin={{ col: colIdx, row: rowIdx }}
                 active={isActive}
                 project={project}
                 metalMaps={tex}
+                revealAnim={isPortfolio}   // line-spread → content-pop materialise
+                occludeRefs={isPortfolio ? [aboutTitleRef] : undefined}
               />
             )
+            // Stage 1 of the reveal: the platform (+ its pillars) rises up.
+            return isPortfolio
+              ? <Reveal key={`proj-${colIdx}-${rowIdx}`} {...REVEAL.rise}>{tile}</Reveal>
+              : tile
           }
 
           // Non-origin cells of a project zone — skip (the 3×3 mesh covers them)

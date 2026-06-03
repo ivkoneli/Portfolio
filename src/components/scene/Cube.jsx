@@ -5,7 +5,7 @@ import { Edges } from '@react-three/drei'
 import useGameStore from '../../store/gameStore'
 import useKeyboard from '../../hooks/useKeyboard'
 import { playRoll } from '../../audio/sound'
-import { LAYOUT, ROWS, COLS, tileToWorld, CUBE_START, findPath } from '../../data/layout'
+import { LAYOUT, tileToWorld, CUBE_START, findPath, isWalkable } from '../../data/layout'
 import { findProjectAtTile } from '../../data/projects'
 
 const GLOW_COLOR = '#c084fc'
@@ -14,11 +14,6 @@ const GLOW_COLOR = '#c084fc'
 const TILE_Y    = 0.275   // top face of a tile (tile height 0.1, centered at y=0)
 const CUBE_HALF = 0.5    // half of the 1×1×1 cube
 const CUBE_CY   = TILE_Y + CUBE_HALF  // cube centre height = 0.55
-
-function isValid(col, row) {
-  if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return false
-  return LAYOUT[row][col] !== 0
-}
 
 // Stable starting world position (computed once, never changes)
 const [SX, , SZ] = tileToWorld(CUBE_START.col, CUBE_START.row)
@@ -65,7 +60,7 @@ export default function Cube() {
 
     const nextCol = cubePos.col + dc
     const nextRow = cubePos.row + dr
-    if (!isValid(nextCol, nextRow)) return
+    if (!isWalkable(nextCol, nextRow)) return
 
     setIsAnimating(true)
 
@@ -132,6 +127,12 @@ export default function Cube() {
         } else {
           useGameStore.getState().setMoveDest(null)   // arrived — clear destination marker
           useGameStore.getState().setPathTiles([])    // clear the final trail dot
+          // Arriving via the "Explore This Portfolio" button: open its card.
+          const st = useGameStore.getState()
+          if (st.portfolioAutoOpen && st.activeProject?.id === 'portfolio') {
+            st.setPortfolioAutoOpen(false)
+            st.setDetailProject(st.activeProject)
+          }
           const next = pendingMove.current
           if (next) {
             pendingMove.current = null

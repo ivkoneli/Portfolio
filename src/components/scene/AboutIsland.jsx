@@ -19,7 +19,7 @@ const OFFS    = [-1, 0, 1]
 const TITLE_Y = 8.4
 const TITLE_Z = 0.2
 
-export default function AboutIsland({ metalMaps }) {
+export default function AboutIsland({ metalMaps, titleRef }) {
   const dotRef   = useRef()
   const lightRef = useRef()
 
@@ -79,6 +79,7 @@ export default function AboutIsland({ metalMaps }) {
       <Suspense fallback={null}>
         <Center position={[0, TITLE_Y, TITLE_Z]}>
           <Text3D
+            ref={titleRef}
             font={titleFont}
             size={0.95}
             height={0.32}

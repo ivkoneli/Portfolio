@@ -271,6 +271,20 @@ export default function ProjectPanel() {
           </ActionButton>
         )}
       </div>
+
+      {/* Optional attribution footer (e.g. the CC BY 4.0 hologram bust). */}
+      {detailProject.credits && (
+        <div style={{
+          marginTop: '14px', paddingTop: '12px', flexShrink: 0,
+          borderTop: '1px solid rgba(192, 132, 252, 0.12)',
+          fontSize: '10px', lineHeight: 1.5, color: '#6b7280',
+        }}>
+          {detailProject.credits.map((c, i) => c.href
+            ? <a key={i} href={c.href} target="_blank" rel="noreferrer" style={{ color: '#9ca3af' }}>{c.text}</a>
+            : <span key={i}>{c.text}</span>
+          )}
+        </div>
+      )}
     </div>
   )
 }

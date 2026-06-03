@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { CUBE_START } from '../data/layout'
+import { CUBE_START, revealPortfolio } from '../data/layout'
 
 const useGameStore = create((set) => ({
   cubePos:      { ...CUBE_START },  // { col, row } — grid coordinates
@@ -14,6 +14,8 @@ const useGameStore = create((set) => ({
   suppressClick: false, // true after a drag-pan so the release doesn't move the cube
   aboutActive:  false,  // cube is right next to the About hologram (it's powered on)
   aboutOpen:    false,  // the About / profile panel is open
+  portfolioRevealed: false,  // the Portfolio bridge + platform have been unsealed
+  portfolioAutoOpen: false,  // open the Portfolio card once the cube rolls onto its platform
   sceneReady:   false,  // loading screen finished — scene is fully visible
 
   setCubePos:        (pos) => set({ cubePos: pos }),
@@ -28,6 +30,8 @@ const useGameStore = create((set) => ({
   setSuppressClick:  (v)   => set({ suppressClick: v }),
   setAboutActive:    (v)   => set({ aboutActive: v }),
   setAboutOpen:      (v)   => set({ aboutOpen: v }),
+  setPortfolioRevealed: (v) => { if (v) revealPortfolio(); set({ portfolioRevealed: v }) },
+  setPortfolioAutoOpen: (v) => set({ portfolioAutoOpen: v }),
   setSceneReady:     (v)   => set({ sceneReady: v }),
 }))
 

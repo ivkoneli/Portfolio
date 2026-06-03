@@ -1,6 +1,9 @@
 import { RoundedBox, Edges } from '@react-three/drei'
 import { tileToWorld } from '../../data/layout'
 import { PROJECTS } from '../../data/projects'
+import Reveal from '../anim/Reveal'
+import { REVEAL } from '../../anim/reveal'
+import useGameStore from '../../store/gameStore'
 
 const TILE_H   = 0.80
 const HALF_H   = TILE_H / 2
@@ -20,16 +23,17 @@ const LAYERS = [0, 1, 2, 3].map(i => ({
 }))
 
 export default function DepthPillars() {
+  const portfolioRevealed = useGameStore(s => s.portfolioRevealed)
   return (
     <>
-      {PROJECTS.map(project => {
+      {PROJECTS.filter(p => p.id !== 'portfolio' || portfolioRevealed).map(project => {
         const [cx, , cz] = tileToWorld(
           project.tileOrigin.col + 1.5,
           project.tileOrigin.row + 1.5
         )
         const { theme } = project
 
-        return LAYERS.map((layer, i) => (
+        const pillars = LAYERS.map((layer, i) => (
           <RoundedBox
             key={`${project.id}-${i}`}
             args={[PILLAR_W, TILE_H, PILLAR_W]}
@@ -47,6 +51,11 @@ export default function DepthPillars() {
             <Edges color={theme.edge} threshold={15} />
           </RoundedBox>
         ))
+
+        // Portfolio rises in with its platform (same config → one moving column).
+        return project.id === 'portfolio'
+          ? <Reveal key={`${project.id}-pillars`} {...REVEAL.rise}>{pillars}</Reveal>
+          : pillars
       })}
     </>
   )
