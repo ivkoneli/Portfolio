@@ -4,6 +4,9 @@ import { useFrame } from '@react-three/fiber'
 import { Edges, Text3D, Center } from '@react-three/drei'
 import { tileToWorld, ABOUT_ORIGIN } from '../../data/layout'
 import AboutHologram from './AboutHologram'
+import Reveal from '../anim/Reveal'
+import { REVEAL, introIslandDelay } from '../../anim/reveal'
+import useGameStore from '../../store/gameStore'
 import titleFont from '../../assets/fonts/helvetiker_bold.typeface.json?url'
 
 // Amber centrepiece, distinct from the project sections.
@@ -20,8 +23,9 @@ const TITLE_Y = 8.4
 const TITLE_Z = 0.2
 
 export default function AboutIsland({ metalMaps, titleRef }) {
-  const dotRef   = useRef()
-  const lightRef = useRef()
+  const dotRef     = useRef()
+  const lightRef   = useRef()
+  const sceneReady = useGameStore(s => s.sceneReady)
 
   const [cx, , cz] = tileToWorld(ABOUT_ORIGIN.col + 2, ABOUT_ORIGIN.row + 2)
 
@@ -48,6 +52,15 @@ export default function AboutIsland({ metalMaps, titleRef }) {
 
   return (
     <group position={[cx, 0, cz]}>
+      {/* The whole centrepiece rises out of the fog during the first-load intro,
+          staggered by distance from the cube start like every other island. */}
+      <Reveal
+        play={sceneReady}
+        delay={introIslandDelay(ABOUT_ORIGIN)}
+        duration={REVEAL.intro.riseDur}
+        distance={REVEAL.intro.riseDist}
+        easing={REVEAL.intro.riseEasing}
+      >
       {/* Raised 3×3 dais from individual grid-height tiles (0.96 wide → grid gaps).
           Inner tiles step up one tile-height; the centre tile steps up two. */}
       {OFFS.flatMap(dr => OFFS.map(dc => {
@@ -94,6 +107,7 @@ export default function AboutIsland({ metalMaps, titleRef }) {
           </Text3D>
         </Center>
       </Suspense>
+      </Reveal>
     </group>
   )
 }
