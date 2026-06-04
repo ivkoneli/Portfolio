@@ -50,10 +50,9 @@ export default function AboutIsland({ metalMaps, titleRef }) {
     if (lightRef.current) lightRef.current.intensity = 6 * p
   })
 
-  return (
+   return (
     <group position={[cx, 0, cz]}>
-      {/* The whole centrepiece rises out of the fog during the first-load intro,
-          staggered by distance from the cube start like every other island. */}
+      {/* Only the orange dais tiles rise in with the intro */}
       <Reveal
         play={sceneReady}
         delay={introIslandDelay(ABOUT_ORIGIN)}
@@ -61,34 +60,49 @@ export default function AboutIsland({ metalMaps, titleRef }) {
         distance={REVEAL.intro.riseDist}
         easing={REVEAL.intro.riseEasing}
       >
-      {/* Raised 3×3 dais from individual grid-height tiles (0.96 wide → grid gaps).
-          Inner tiles step up one tile-height; the centre tile steps up two. */}
-      {OFFS.flatMap(dr => OFFS.map(dc => {
-        const y = dc === 0 && dr === 0 ? CTR_Y : INNER_Y
-        return (
-          <mesh key={`${dc}-${dr}`} position={[dc, y, dr]} material={tileMat} castShadow receiveShadow>
-            <boxGeometry args={[0.96, TILE_H, 0.96]} />
-            <Edges color="#1a1205" threshold={15} />
-          </mesh>
-        )
-      }))}
+        {/* Raised 3×3 dais */}
+        {OFFS.flatMap(dr => OFFS.map(dc => {
+          const y = dc === 0 && dr === 0 ? CTR_Y : INNER_Y
 
-      {/* Holographic bust on the raised centre tile (its own Suspense so the
-          model load doesn't block the rest of the board). */}
+          return (
+            <mesh
+              key={`${dc}-${dr}`}
+              position={[dc, y, dr]}
+              material={tileMat}
+              castShadow
+              receiveShadow
+            >
+              <boxGeometry args={[0.96, TILE_H, 0.96]} />
+              <Edges color="#1a1205" threshold={15} />
+            </mesh>
+          )
+        }))}
+      </Reveal>
+
       <Suspense fallback={null}>
         <AboutHologram />
       </Suspense>
 
-      {/* Light dot at the pedestal base — reads as the hologram projector.
-          Bigger + stronger than the project orbs. */}
-      <pointLight ref={lightRef} position={[0, CTR_Y + 0.35, 0]} color={ACCENT} intensity={6} distance={13} decay={2} />
+      <pointLight
+        ref={lightRef}
+        position={[0, CTR_Y + 0.35, 0]}
+        color={ACCENT}
+        intensity={6}
+        distance={13}
+        decay={2}
+      />
+
       <mesh ref={dotRef} position={[0, CTR_Y + 0.35, 0]}>
         <sphereGeometry args={[0.13, 16, 16]} />
-        <meshStandardMaterial emissive={ACCENT} emissiveIntensity={13} color="#000000" roughness={1} metalness={0} />
+        <meshStandardMaterial
+          emissive={ACCENT}
+          emissiveIntensity={13}
+          color="#000000"
+          roughness={1}
+          metalness={0}
+        />
       </mesh>
 
-      {/* Big title — one opaque extruded mesh, axis-aligned, facing the player
-          coming up the spine (+Z). Raised high above the hologram. */}
       <Suspense fallback={null}>
         <Center position={[0, TITLE_Y, TITLE_Z]}>
           <Text3D
@@ -103,11 +117,18 @@ export default function AboutIsland({ metalMaps, titleRef }) {
             bevelSegments={2}
           >
             ABOUT ME
-            <meshStandardMaterial color="#ffd98a" emissive={ACCENT} emissiveIntensity={0.45} metalness={0.3} roughness={0.45} toneMapped={false} />
+            <meshStandardMaterial
+              color="#ffd98a"
+              emissive={ACCENT}
+              emissiveIntensity={0.45}
+              metalness={0.3}
+              roughness={0.45}
+              toneMapped={false}
+            />
           </Text3D>
         </Center>
       </Suspense>
-      </Reveal>
     </group>
   )
 }
+
