@@ -38,6 +38,10 @@
 .holo-card-reveal > *:nth-child(3) { animation-delay: var(--c3); }
 .holo-card-reveal > *:nth-child(4) { animation-delay: var(--c4); }
 .holo-card-reveal > *:nth-child(5) { animation-delay: var(--c5); }
+/* Hold the materialise frozen (hidden at 0%) until the scene is ready, so the
+   intro cards don't play out behind the loading screen. */
+.holo-card-reveal.paused,
+.holo-card-reveal.paused > * { animation-play-state: paused; }
 
 /* The R3F canvas owns every touch gesture (tap-to-move). Tell the browser not to
    treat touches as scroll/pinch-zoom so taps register instantly on mobile. */

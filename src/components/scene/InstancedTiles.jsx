@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import useGameStore from '../../store/gameStore'
 import { LAYOUT, tileToWorld, isPortfolioTile } from '../../data/layout'
+import { REVEAL, ease, introTileDelay } from '../../anim/reveal'
 
 // Every walkable tile (cell === 1) drawn as ONE instanced mesh instead of one
 // <mesh> each — hundreds of draw calls collapse to a single one. The hovered
@@ -31,23 +32,52 @@ export default function InstancedTiles({ material }) {
     return m
   }, [tiles])
 
-  const lifts = useRef(new Float32Array(tiles.length))
+  // Per-tile intro delay — the radial ripple out from the cube start.
+  const delays = useMemo(() => tiles.map(t => introTileDelay(t.x, t.z)), [tiles])
 
-  // Seed the instance matrices once (layout effect → set before first paint).
+  const lifts    = useRef(new Float32Array(tiles.length))
+  const introT0  = useRef(null)    // clock time the ripple began
+  const introOff = useRef(false)   // intro finished → resume hover-only updates
+
+  // Seed the instances HIDDEN (scale ~0) so they can pop in with the intro.
   useLayoutEffect(() => {
     const mesh = meshRef.current
     tiles.forEach((t, i) => {
       dummy.position.set(t.x, t.y, t.z)
+      dummy.scale.setScalar(0.0001)
       dummy.updateMatrix()
       mesh.setMatrixAt(i, dummy.matrix)
     })
     mesh.instanceMatrix.needsUpdate = true
   }, [tiles, dummy])
 
-  // Animate only the hovered tile (and the one easing back).
-  useFrame(() => {
+  useFrame((state) => {
     const mesh = meshRef.current
     if (!mesh) return
+
+    // ── First-load ripple: hold until the loader is gone, then pop each tile
+    //    in at its distance-based delay; hand off to hover once they've all landed.
+    if (!introOff.current) {
+      if (!useGameStore.getState().sceneReady) return
+      if (introT0.current === null) introT0.current = state.clock.elapsedTime
+      const now = state.clock.elapsedTime - introT0.current
+      let allDone = true
+      for (let i = 0; i < tiles.length; i++) {
+        const local = (now - delays[i]) / REVEAL.intro.tilePop
+        if (local < 1) allDone = false
+        const p = ease(REVEAL.intro.tileEasing, local)
+        const t = tiles[i]
+        dummy.position.set(t.x, t.y, t.z)
+        dummy.scale.setScalar(Math.max(0.0001, p))
+        dummy.updateMatrix()
+        mesh.setMatrixAt(i, dummy.matrix)
+      }
+      mesh.instanceMatrix.needsUpdate = true
+      if (allDone) { introOff.current = true; dummy.scale.set(1, 1, 1) }
+      return
+    }
+
+    // ── Steady state: animate only the hovered tile (and the one easing back).
     const hov = useGameStore.getState().hoveredTile
     const hi  = hov ? (indexMap.get(`${hov.col},${hov.row}`) ?? -1) : -1
     let dirty = false
@@ -59,6 +89,7 @@ export default function InstancedTiles({ material }) {
         lifts.current[i] = nv
         const t = tiles[i]
         dummy.position.set(t.x, t.y + nv, t.z)
+        dummy.scale.set(1, 1, 1)
         dummy.updateMatrix()
         mesh.setMatrixAt(i, dummy.matrix)
         dirty = true

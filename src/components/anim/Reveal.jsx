@@ -23,7 +23,9 @@ export default function Reveal({
     const g = ref.current
     if (!g) return
     if (!play) { g.position.y = -distance; t0.current = null; done.current = false; return }
-    if (done.current) return
+    // Keep it pinned up even after finishing — a parent re-render re-applies the
+    // JSX position prop, so we re-assert y=0 each frame instead of bailing out.
+    if (done.current) { g.position.y = 0; return }
     if (t0.current === null) t0.current = state.clock.elapsedTime
 
     const t = (state.clock.elapsedTime - t0.current - delay) / duration

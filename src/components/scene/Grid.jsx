@@ -13,7 +13,7 @@ import ClickRipple from '../interaction/ClickRipple'
 import InteractionPlane from '../interaction/InteractionPlane'
 import Reveal from '../anim/Reveal'
 import RevealTiles from '../anim/RevealTiles'
-import { REVEAL } from '../../anim/reveal'
+import { REVEAL, introIslandDelay } from '../../anim/reveal'
 import useGameStore from '../../store/gameStore'
 import colorUrl  from '../../assets/textures/metalTile/Metal061B_1K-JPG_Color.jpg'
 import normalUrl from '../../assets/textures/metalTile/Metal061B_1K-JPG_NormalGL.jpg'
@@ -28,6 +28,7 @@ function isProjectOrigin(rowIdx, colIdx) {
 export default function Grid() {
   const activeProject      = useGameStore(s => s.activeProject)
   const portfolioRevealed  = useGameStore(s => s.portfolioRevealed)
+  const sceneReady         = useGameStore(s => s.sceneReady)
 
   // Shared worn-metal material. COLOUR + NORMAL maps (the normal gives the worn
   // dents/scratches via diffuse shading) but NO roughness map — that one varies
@@ -84,21 +85,41 @@ export default function Grid() {
             const isPortfolio = project?.id === 'portfolio'
             if (isPortfolio && !portfolioRevealed) return null
             const isActive = activeProject?.id === project?.id
+            const key = `proj-${colIdx}-${rowIdx}`
+            // Card materialises (line-spread → content-pop). Portfolio plays on its
+            // button reveal; intro cards stay paused until sceneReady, then each
+            // forms just as its island finishes rising.
+            const cardDelay = isPortfolio
+              ? REVEAL.card.delay
+              : introIslandDelay(project.tileOrigin) + REVEAL.intro.riseDur * REVEAL.intro.cardRiseFrac
             const tile = (
               <ProjectTile
-                key={`proj-${colIdx}-${rowIdx}`}
+                key={key}
                 tileOrigin={{ col: colIdx, row: rowIdx }}
                 active={isActive}
                 project={project}
                 metalMaps={tex}
-                revealAnim={isPortfolio}   // line-spread → content-pop materialise
+                revealAnim
+                cardDelay={cardDelay}
+                cardPlay={isPortfolio || sceneReady}
                 occludeRefs={isPortfolio ? [aboutTitleRef] : undefined}
               />
             )
-            // Stage 1 of the reveal: the platform (+ its pillars) rises up.
-            return isPortfolio
-              ? <Reveal key={`proj-${colIdx}-${rowIdx}`} {...REVEAL.rise}>{tile}</Reveal>
-              : tile
+            // Portfolio rises on its own button trigger; every other island rises
+            // during the first-load intro, staggered as the ripple reaches it.
+            if (isPortfolio) return <Reveal key={key} {...REVEAL.rise}>{tile}</Reveal>
+            return (
+              <Reveal
+                key={key}
+                play={sceneReady}
+                delay={introIslandDelay(project.tileOrigin)}
+                duration={REVEAL.intro.riseDur}
+                distance={REVEAL.intro.riseDist}
+                easing={REVEAL.intro.riseEasing}
+              >
+                {tile}
+              </Reveal>
+            )
           }
 
           // Non-origin cells of a project zone — skip (the 3×3 mesh covers them)

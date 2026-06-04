@@ -38,6 +38,7 @@ import pgo4 from '../assets/projects/pokemon-go/pgo4.jpg'
 import pgo5 from '../assets/projects/pokemon-go/pgo5.jpg'
 import pgo6 from '../assets/projects/pokemon-go/pgo6.jpg'
 import pgo7 from '../assets/projects/pokemon-go/pgo7.jpg'
+import portfolio from '../assets/portfolio.png'
 
 // Build a full tile/card theme from a single base colour. Sections share a base
 // hue and each project gets a slight variation, so the board reads as grouped.
@@ -146,10 +147,11 @@ export const PROJECTS = [
   {
     id: 'portfolio',
     name: 'This Portfolio',
-    description: 'The site you\'re in: a 3D portfolio you explore by rolling a block around an island board, inspired by Bloxorz.',
-    longDescription: "You're tipping a block across floating tiles — a nod to Bloxorz, the puzzle game where you roll a 1×2 block around an isometric board. I wanted a portfolio you explore rather than scroll, where every project is a place you travel to and light up as you arrive, instead of a row in a list. It's a real-time 3D scene built with React and Three.js through React-Three-Fiber, with drei helpers and a postprocessing stack — bloom, vignette and ACES tone-mapping — for the glow. State lives in Zustand, and the cube's rolls and landing squash are react-spring animations. The whole floor is a single instanced draw call of PBR metal tiles reflecting a baked environment map, click-to-move runs a BFS pathfinder over the tile grid, and the holograms are a hand-written GLSL shader that fires up from the base. Bundled with Vite and deployed to GitHub Pages.",
+    description: 'A 3D portfolio you explore by rolling a block around the board, inspired by Bloxorz.',
+    longDescription: "I wanted a portfolio you play instead of scroll, where every project is a place you roll the cube to. Built with React and Three.js (React-Three-Fiber), a hand-written GLSL shader for the holograms, an instanced metal floor, and BFS pathfinding for click-to-move. State runs on Zustand, the cube on react-spring, bundled with Vite.",
     tech: ['React', 'Three.js', 'React-Three-Fiber', 'GLSL', 'Zustand', 'Vite'],
     repoUrl: 'https://github.com/ivkoneli/Portfolio',
+    images: [portfolio],
     tileOrigin: PROJECT_ORIGINS.portfolio,
     theme: makeTheme('#c084fc'),   // violet — matches the cube's glow
     // Attribution for the About-Me hologram bust (CC BY 4.0). Rendered as a small

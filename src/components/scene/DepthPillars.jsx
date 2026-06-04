@@ -2,7 +2,7 @@ import { RoundedBox, Edges } from '@react-three/drei'
 import { tileToWorld } from '../../data/layout'
 import { PROJECTS } from '../../data/projects'
 import Reveal from '../anim/Reveal'
-import { REVEAL } from '../../anim/reveal'
+import { REVEAL, introIslandDelay } from '../../anim/reveal'
 import useGameStore from '../../store/gameStore'
 
 const TILE_H   = 0.80
@@ -24,6 +24,7 @@ const LAYERS = [0, 1, 2, 3].map(i => ({
 
 export default function DepthPillars() {
   const portfolioRevealed = useGameStore(s => s.portfolioRevealed)
+  const sceneReady        = useGameStore(s => s.sceneReady)
   return (
     <>
       {PROJECTS.filter(p => p.id !== 'portfolio' || portfolioRevealed).map(project => {
@@ -52,10 +53,22 @@ export default function DepthPillars() {
           </RoundedBox>
         ))
 
-        // Portfolio rises in with its platform (same config → one moving column).
+        // Each pillar column rises with its platform (same delay → one moving
+        // column): portfolio on its button trigger, the rest during the intro.
         return project.id === 'portfolio'
           ? <Reveal key={`${project.id}-pillars`} {...REVEAL.rise}>{pillars}</Reveal>
-          : pillars
+          : (
+            <Reveal
+              key={`${project.id}-pillars`}
+              play={sceneReady}
+              delay={introIslandDelay(project.tileOrigin)}
+              duration={REVEAL.intro.riseDur}
+              distance={REVEAL.intro.riseDist}
+              easing={REVEAL.intro.riseEasing}
+            >
+              {pillars}
+            </Reveal>
+          )
       })}
     </>
   )

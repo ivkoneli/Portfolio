@@ -10,6 +10,8 @@
 //  island and lays every road) by feeding them a different config slice.
 // ============================================================
 
+import { tileToWorld, CUBE_START } from '../data/layout'
+
 // ── Easing functions (t goes 0→1) ───────────────────────────────────────────
 //  Swap any stage's `easing` to one of these names. `easeOutBack` /
 //  `easeOutElastic` / `easeOutBounce` overshoot for a punchy "pop".
@@ -65,4 +67,35 @@ export const REVEAL = {
   // After a button-triggered reveal, wait this long (s) before the cube rolls
   // over — keeps the auto-walk from racing the animation. ≈ rise + tiles + card.
   autoRollAfter: 2.4,
+
+  // FIRST-LOAD INTRO — the whole board builds itself once the loader is done.
+  // Floor tiles pop outward from the cube start (a radial ripple); each project
+  // island rises out of the fog as the ripple reaches it. Keep `total` ≥ the
+  // slowest element so the movement hint waits for the build to finish.
+  intro: {
+    total:        3.0,          // s — whole build is done by here (gates the movement hint)
+    tilePop:      0.40,         // s — each floor tile's pop
+    tileSpread:   0.045,        // s of delay per world-unit from the cube start
+    tileEasing:   'easeOutBack',
+    riseDelay:    0.30,         // s base offset before an island starts rising
+    riseSpread:   0.030,        // s per world-unit (island centre ← cube start)
+    riseDur:      0.90,         // s — island rise duration
+    riseDist:     11,           // world-units the island rises from below
+    riseEasing:   'easeOutCubic',
+    cardRiseFrac: 0.60,         // card starts materialising this far through its island's rise
+  },
+}
+
+// Cube-start world position — the origin the intro ripples out from.
+const [SX, , SZ] = tileToWorld(CUBE_START.col, CUBE_START.row)
+
+// Per-floor-tile delay: farther from the cube start = later (radial ripple).
+export function introTileDelay(x, z) {
+  return Math.hypot(x - SX, z - SZ) * REVEAL.intro.tileSpread
+}
+
+// Per-island delay: an island rises as the ripple reaches its centre.
+export function introIslandDelay(tileOrigin) {
+  const [cx, , cz] = tileToWorld(tileOrigin.col + 1.5, tileOrigin.row + 1.5)
+  return REVEAL.intro.riseDelay + Math.hypot(cx - SX, cz - SZ) * REVEAL.intro.riseSpread
 }

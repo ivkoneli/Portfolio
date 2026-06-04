@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { CUBE_START, revealPortfolio } from '../data/layout'
+import { REVEAL } from '../anim/reveal'
 
 const useGameStore = create((set) => ({
   cubePos:      { ...CUBE_START },  // { col, row } — grid coordinates
@@ -17,6 +18,7 @@ const useGameStore = create((set) => ({
   portfolioRevealed: false,  // the Portfolio bridge + platform have been unsealed
   portfolioAutoOpen: false,  // open the Portfolio card once the cube rolls onto its platform
   sceneReady:   false,  // loading screen finished — scene is fully visible
+  introDone:    false,  // the first-load build animation has finished
 
   setCubePos:        (pos) => set({ cubePos: pos }),
   setIsAnimating:    (v)   => set({ isAnimating: v }),
@@ -32,7 +34,13 @@ const useGameStore = create((set) => ({
   setAboutOpen:      (v)   => set({ aboutOpen: v }),
   setPortfolioRevealed: (v) => { if (v) revealPortfolio(); set({ portfolioRevealed: v }) },
   setPortfolioAutoOpen: (v) => set({ portfolioAutoOpen: v }),
-  setSceneReady:     (v)   => set({ sceneReady: v }),
+  // Mark the scene visible and, once it is, schedule introDone for when the
+  // first-load build animation has played out (gates the hint + project cards).
+  setSceneReady:     (v)   => {
+    set({ sceneReady: v })
+    if (v) setTimeout(() => set({ introDone: true }), REVEAL.intro.total * 1000)
+  },
+  setIntroDone:      (v)   => set({ introDone: v }),
 }))
 
 export default useGameStore

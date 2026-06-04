@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import useGameStore from '../../store/gameStore'
 
-// First-load controls hint. Appears ~1s AFTER the scene finished loading, then
-// stays until the first input (key / click) before fading out. Pointer-events off.
+// First-load movement hint. Appears once the intro build animation has finished,
+// then stays until the first input (key / click) before fading out. No-pointer.
 const kbd = {
   display: 'inline-flex',
   alignItems: 'center',
@@ -21,18 +21,17 @@ const kbd = {
 const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
 
 export default function IntroOverlay() {
-  const sceneReady = useGameStore(s => s.sceneReady)
-  const [ready, setReady] = useState(false)   // mounted ~1s after the scene loads
+  const introDone = useGameStore(s => s.introDone)
+  const [ready, setReady] = useState(false)   // mounted once the build animation is done
   const [shown, setShown] = useState(false)   // drives the fade-in
   const [hidden, setHidden] = useState(false) // dismissed by first input
   const [gone, setGone] = useState(false)
 
-  // Appear 1s after the loading screen has finished.
+  // Appear once the first-load build animation has finished.
   useEffect(() => {
-    if (!sceneReady) return
-    const t = setTimeout(() => setReady(true), 1000)
-    return () => clearTimeout(t)
-  }, [sceneReady])
+    if (!introDone) return
+    setReady(true)
+  }, [introDone])
 
   // Fade in on the next frame after mounting, then dismiss on the first input.
   useEffect(() => {
@@ -93,9 +92,6 @@ export default function IntroOverlay() {
           <>
             <span style={kbd}>tap</span>
             <span>to move</span>
-            <span style={{ opacity: 0.35, margin: '0 4px' }}>•</span>
-            <span style={kbd}>tap</span>
-            <span>a project to view</span>
           </>
         ) : (
           <>
@@ -103,9 +99,6 @@ export default function IntroOverlay() {
             <span>or</span>
             <span style={kbd}>click</span>
             <span>to move</span>
-            <span style={{ opacity: 0.35, margin: '0 4px' }}>•</span>
-            <span style={kbd}>E</span>
-            <span>to view a project</span>
           </>
         )}
       </div>
