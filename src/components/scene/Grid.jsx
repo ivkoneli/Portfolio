@@ -5,6 +5,7 @@ import { LAYOUT, portfolioBridgeTiles } from '../../data/layout'
 import { PROJECTS } from '../../data/projects'
 import InstancedTiles from './InstancedTiles'
 import AboutIsland from './AboutIsland'
+import Portal from './Portal'
 import ProjectTile from '../project/ProjectTile'
 import HoverHighlight from '../interaction/HoverHighlight'
 import DestinationMarker from '../interaction/DestinationMarker'
@@ -29,6 +30,8 @@ export default function Grid() {
   const activeProject      = useGameStore(s => s.activeProject)
   const portfolioRevealed  = useGameStore(s => s.portfolioRevealed)
   const sceneReady         = useGameStore(s => s.sceneReady)
+  const currentLevel       = useGameStore(s => s.currentLevel)
+  const isTopFloor         = currentLevel === 0
 
   // Shared worn-metal material. COLOUR + NORMAL maps (the normal gives the worn
   // dents/scratches via diffuse shading) but NO roughness map — that one varies
@@ -62,15 +65,16 @@ export default function Grid() {
       <InteractionPlane />
       <HoverHighlight />
       <DestinationMarker />
-      <AboutIsland metalMaps={tex} titleRef={aboutTitleRef} />
+      {isTopFloor && <AboutIsland metalMaps={tex} titleRef={aboutTitleRef} />}
       <PathDots />
       <ClickRipple />
+      <Portal material={tileMaterial} />
 
       {/* All walkable tiles in one instanced mesh (one draw call). */}
       <InstancedTiles material={tileMaterial} />
 
       {/* Stage 2 of the reveal: the bridge tiles pop in toward the platform. */}
-      {portfolioRevealed && (
+      {isTopFloor && portfolioRevealed && (
         <RevealTiles tiles={bridgeTiles} material={tileMaterial} {...REVEAL.tiles} />
       )}
 

@@ -21,10 +21,21 @@
 //  centred on the origin → camera, fog and pillars keep their exact position.
 //  Every authored row below is written `PAD + <original row>` so the original
 //  numbers (and their comments) still read true.
+//
+//  A second LEVEL lives below this one. A PORTAL tile (a hatch on the top
+//  floor, a staircase on the lower one) links them: the cube falls through the
+//  hatch to the lower floor and climbs the staircase back up. Both boards share
+//  the same ROWS×COLS so the camera / fog / clouds math never changes; only the
+//  active grid (and its projects) swap. tileToWorld() is identical per level.
 // ============================================================
 const PAD = 9
 export const ROWS = 27 + PAD * 2
 export const COLS = 40
+
+// The single tile that links the two levels — a hatch on top, a staircase
+// below, at the SAME grid cell on both boards so the camera never slides across
+// the swap (the cube falls / climbs straight down / up the same column).
+export const PORTAL = { col: 17, row: PAD + 18 }
 
 // Top-left corner of each project's 4×4 platform (single source of truth;
 // projects.js reads these so data and layout never drift apart).
@@ -41,6 +52,12 @@ export const PROJECT_ORIGINS = {
   tasking:            { col: 30, row: PAD + 17 },  // right arm — DOWN (3rd)
   'pokemon-go':       { col: 35, row: PAD + 6 },   // right arm — UP   (4th)
   portfolio:          { col: 13, row: PAD - 9 },   // behind ABOUT ME (rows 0–3), reached by the back bridge
+}
+
+// LEVEL 2 platforms. Two projects hang off a west-running road from the PORTAL.
+export const PROJECT_ORIGINS_L1 = {
+  crowlogs:    { col: 5,  row: PAD + 12 },   // west spur off the main road
+  luckyslimes: { col: 14, row: PAD + 12 },   // centre spur off the main road
 }
 
 // Spawn at the bottom of the bridge (empty surroundings).
@@ -79,6 +96,8 @@ function buildLayout() {
   vRoad(26, PAD + 10, PAD + 12)  // domineering — UP   spur
   vRoad(31, PAD + 14, PAD + 16)  // tasking     — DOWN spur
   vRoad(36, PAD + 10, PAD + 12)  // pokemon-go  — UP   spur
+  // Portal spur: a short branch east off the spine to the hatch down to level 2.
+  hRoad(15, PORTAL.col, PORTAL.row)
   // Start pad (empty around it).
   plaza(14, PAD + 23, 3, 3)
   // About-Me island: a 5×5 ring you walk around; the inner 3×3 is a raised dais
@@ -98,7 +117,37 @@ function buildLayout() {
   return g
 }
 
-export const LAYOUT = buildLayout()
+// LEVEL 2 — a smaller, differently-shaped board. You arrive on the PORTAL
+// (staircase) at the east end of a west-running road, with the two project
+// spurs hanging north off it.
+function buildLayout1() {
+  const g = Array.from({ length: ROWS }, () => Array(COLS).fill(0))
+  const set1  = (c, r) => { if (r >= 0 && r < ROWS && c >= 0 && c < COLS && g[r][c] === 0) g[r][c] = 1 }
+  const hRoad = (c0, c1, r) => { for (let c = c0; c <= c1; c++) set1(c, r) }
+  const vRoad = (c, r0, r1) => { for (let r = r0; r <= r1; r++) set1(c, r) }
+  const platform = ({ col, row }) => { for (let r = row; r < row + 4; r++) for (let c = col; c < col + 4; c++) g[r][c] = 2 }
+
+  // Main road west from the portal.
+  hRoad(6, PORTAL.col, PORTAL.row)
+  // Two spurs north off the road, up to the platforms' south edges.
+  vRoad(6,  PROJECT_ORIGINS_L1.crowlogs.row + 3,    PORTAL.row)   // crowlogs   spur
+  vRoad(15, PROJECT_ORIGINS_L1.luckyslimes.row + 3, PORTAL.row)   // luckyslimes spur
+
+  Object.values(PROJECT_ORIGINS_L1).forEach(platform)
+
+  return g
+}
+
+// The active board can swap between levels (see setActiveLevel). Both boards are
+// the same size, so tileToWorld / camera / fog / clouds are level-agnostic.
+const LEVELS = [buildLayout(), buildLayout1()]
+let activeLevel = 0
+export let LAYOUT = LEVELS[0]
+
+export function setActiveLevel(n) {
+  activeLevel = n
+  LAYOUT = LEVELS[n]
+}
 
 // Convert grid coordinates to world XZ position (grid centered at origin).
 export function tileToWorld(col, row) {
@@ -136,7 +185,7 @@ export function isPortfolioTile(col, row) {
 // island). The RevealTiles animation renders these; InstancedTiles skips them.
 export function portfolioBridgeTiles() {
   const out = []
-  LAYOUT.forEach((row, r) => row.forEach((cell, c) => {
+  LEVELS[0].forEach((row, r) => row.forEach((cell, c) => {
     if (cell === 1 && isPortfolioTile(c, r)) { const [x, y, z] = tileToWorld(c, r); out.push({ x, y, z }) }
   }))
   return out.sort((a, b) => b.z - a.z)   // higher z (About side) first
@@ -145,7 +194,8 @@ export function portfolioBridgeTiles() {
 export function isWalkable(col, row) {
   if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return false
   if (LAYOUT[row][col] === 0) return false
-  if (!portfolioRevealed && isPortfolioTile(col, row)) return false
+  // Portfolio seal only applies to the top floor.
+  if (activeLevel === 0 && !portfolioRevealed && isPortfolioTile(col, row)) return false
   return true
 }
 

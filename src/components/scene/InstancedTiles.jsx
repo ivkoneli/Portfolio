@@ -2,7 +2,7 @@ import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import useGameStore from '../../store/gameStore'
-import { LAYOUT, tileToWorld, isPortfolioTile } from '../../data/layout'
+import { LAYOUT, tileToWorld, isPortfolioTile, PORTAL } from '../../data/layout'
 import { REVEAL, ease, introTileDelay } from '../../anim/reveal'
 
 // Every walkable tile (cell === 1) drawn as ONE instanced mesh instead of one
@@ -19,7 +19,8 @@ export default function InstancedTiles({ material }) {
   const tiles = useMemo(() => {
     const out = []
     LAYOUT.forEach((row, r) => row.forEach((cell, c) => {
-      if (cell === 1 && !isPortfolioTile(c, r)) {
+      // Skip the portal cell — Portal.jsx draws it (custom size + hatch/pad glow).
+      if (cell === 1 && !isPortfolioTile(c, r) && !(c === PORTAL.col && r === PORTAL.row)) {
         const [x, y, z] = tileToWorld(c, r); out.push({ c, r, x, y, z })
       }
     }))

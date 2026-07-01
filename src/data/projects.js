@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { PROJECT_ORIGINS } from './layout'
+import { PROJECT_ORIGINS, PROJECT_ORIGINS_L1 } from './layout'
 import ttt1 from '../assets/projects/tictactoe/1.png'
 import ttt2 from '../assets/projects/tictactoe/2.png'
 import ttt3 from '../assets/projects/tictactoe/3.png'
@@ -60,7 +60,7 @@ function makeTheme(hex) {
 
 // Section colours: GAMES = blues (slight per-project variation), TECH = emerald.
 // (ABOUT ME, when built, will use amber.)
-export const PROJECTS = [
+const PROJECTS_L0 = [
   {
     id: 'minigames',
     name: 'MiniGames Platform',
@@ -166,7 +166,47 @@ export const PROJECTS = [
   },
 ]
 
-// Returns the project whose 4×4 zone contains (col, row), or null.
+// ============================================================
+//  LEVEL 2 PROJECTS  (the lower floor, reached through the hatch)
+//  TODO: add screenshots — both tiles currently fall back to the default image.
+// ============================================================
+const PROJECTS_L1 = [
+  {
+    id: 'crowlogs',
+    name: 'CrowLogs',
+    description: 'A World of Warcraft combat-log DPS/HPS leaderboard — drop a log, get per-boss rankings and player profiles with spec, talents and gear.',
+    longDescription: "CrowLogs is a lightweight World of Warcraft combat-log leaderboard: drag a WoWCombatLog.txt onto the page and it reads each encounter (boss + difficulty), computes per-player DPS, HPS and fight duration, and builds per-boss rankings and per-player profile pages — enriched with character ilvl, spec, talents and full gear pulled from the Tauri armory. It runs entirely in your browser on local data, or shares a single open leaderboard across everyone via Supabase (no accounts — anyone can import a log and the rankings update for all). It's a static React + Vite site deployed to GitHub Pages, with armory enrichment, the open-contribution write path, automated backups and Sentry error monitoring running server-side.",
+    tech: ['React', 'Vite', 'Supabase', 'GitHub Pages', 'Sentry'],
+    demoUrl: 'https://ivkoneli.github.io/CrowLogs/',
+    repoUrl: 'https://github.com/ivkoneli/CrowLogs',
+    images: [],
+    tileOrigin: PROJECT_ORIGINS_L1.crowlogs,
+    theme: makeTheme('#f59e0b'),   // amber — tooling
+    // Brief mention + link to the companion addon (rendered as the panel footer).
+    credits: [
+      { text: 'Companion addon — ' },
+      { text: 'CrowLogsHelper', href: 'https://github.com/ivkoneli/CrowLogsHelper' },
+      { text: ' (Lua, WoW 7.3.5 Legion): on each boss pull it snapshots every raider’s spec, talents, gear and trinkets and broadcasts them over the raid channel, so old logs keep the exact build each player ran — even after they re-gear or respec.' },
+    ],
+  },
+  {
+    id: 'luckyslimes',
+    name: 'LuckySlimes',
+    description: 'A mobile idle-gacha RPG: tap a dice to roll heroes of escalating rarity, auto-battle through worlds, and grow a hex upgrade tree toward the 1-in-250,000 pull.',
+    longDescription: "LuckySlimes is a mobile-first idle gacha RPG built in Unity 6 (URP 2D). You tap a dice to roll for heroes of escalating rarity — Common all the way up to a 1-in-250,000 Godly tier — and your best five form an auto-battling team that pushes through worlds made of stages, killing mobs and bosses for gold. Gold and progress feed a hexagonal upgrade tree (unlock a node and its neighbours open up) that boosts luck, damage, gold and respawn speed. Deep in the tree you unlock Ascension Shards: collect enough and you ascend — reset the run but keep your skills, start at double luck, and unlock even rarer hero tiers. The fantasy is 'one more roll' — every tap might be the big pull.",
+    tech: ['Unity 6', 'C#', 'URP 2D', 'Mobile'],
+    images: [],
+    tileOrigin: PROJECT_ORIGINS_L1.luckyslimes,
+    theme: makeTheme('#84cc16'),   // lime — slime
+  },
+]
+
+// The active project set swaps with the level (see layout.setActiveLevel).
+const PROJECTS_BY_LEVEL = [PROJECTS_L0, PROJECTS_L1]
+export let PROJECTS = PROJECTS_L0
+export function setActiveProjectsLevel(n) { PROJECTS = PROJECTS_BY_LEVEL[n] }
+
+// Returns the project whose 4×4 zone contains (col, row) on the ACTIVE level, or null.
 export function findProjectAtTile(col, row) {
   return PROJECTS.find(p =>
     col >= p.tileOrigin.col && col <= p.tileOrigin.col + 3 &&

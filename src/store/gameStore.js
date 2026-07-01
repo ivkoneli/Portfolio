@@ -20,6 +20,11 @@ const useGameStore = create((set) => ({
   sceneReady:   false,  // loading screen finished — scene is fully visible
   introDone:    false,  // the first-load build animation has finished
 
+  currentLevel: 0,      // which floor is active (0 = top, 1 = lower) — remount key
+  portalActive: null,   // 'descend' | 'ascend' | null — cube is on the portal tile
+  portalRequest: null,  // 'descend' | 'ascend' | null — E pressed, Cube consumes it
+  transitioning: false, // the fall/climb + level swap is playing (freezes input)
+
   setCubePos:        (pos) => set({ cubePos: pos }),
   setIsAnimating:    (v)   => set({ isAnimating: v }),
   setActiveProject:  (p)   => set({ activeProject: p }),
@@ -34,6 +39,10 @@ const useGameStore = create((set) => ({
   setAboutOpen:      (v)   => set({ aboutOpen: v }),
   setPortfolioRevealed: (v) => { if (v) revealPortfolio(); set({ portfolioRevealed: v }) },
   setPortfolioAutoOpen: (v) => set({ portfolioAutoOpen: v }),
+  setCurrentLevel:   (v)   => set({ currentLevel: v }),
+  setPortalActive:   (v)   => set({ portalActive: v }),
+  setPortalRequest:  (v)   => set({ portalRequest: v }),
+  setTransitioning:  (v)   => set({ transitioning: v }),
   // Mark the scene visible and, once it is, schedule introDone for when the
   // first-load build animation has played out (gates the hint + project cards).
   setSceneReady:     (v)   => {

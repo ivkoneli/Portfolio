@@ -11,26 +11,34 @@ export default function InteractHint() {
   const aboutActive      = useGameStore(s => s.aboutActive)
   const aboutOpen        = useGameStore(s => s.aboutOpen)
   const setAboutOpen     = useGameStore(s => s.setAboutOpen)
+  const portalActive     = useGameStore(s => s.portalActive)
+  const transitioning    = useGameStore(s => s.transitioning)
+  const setPortalRequest = useGameStore(s => s.setPortalRequest)
 
   useEffect(() => {
     function onKey(e) {
       if (e.key !== 'e' && e.key !== 'E') return
-      if (detailProject || aboutOpen) return
-      if (activeProject) setDetailProject(activeProject)
+      if (detailProject || aboutOpen || transitioning) return
+      if (portalActive) setPortalRequest(portalActive)
+      else if (activeProject) setDetailProject(activeProject)
       else if (aboutActive) setAboutOpen(true)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [activeProject, detailProject, aboutActive, aboutOpen, setDetailProject, setAboutOpen])
+  }, [activeProject, detailProject, aboutActive, aboutOpen, portalActive, transitioning, setDetailProject, setAboutOpen, setPortalRequest])
 
-  const showProject = !!activeProject && !detailProject && !aboutOpen
-  const showAbout   = !activeProject && aboutActive && !aboutOpen && !detailProject
-  const show  = showProject || showAbout
-  const accent = showAbout ? '245, 166, 35' : '192, 132, 252'
+  const showPortal  = !!portalActive && !detailProject && !aboutOpen && !transitioning
+  const showProject = !showPortal && !!activeProject && !detailProject && !aboutOpen
+  const showAbout   = !showPortal && !activeProject && aboutActive && !aboutOpen && !detailProject
+  const show  = showPortal || showProject || showAbout
+  const accent = showPortal
+    ? (portalActive === 'descend' ? '192, 132, 252' : '132, 204, 22')
+    : showAbout ? '245, 166, 35' : '192, 132, 252'
 
   // Tapping/clicking the prompt does the same as pressing E.
   const activate = () => {
-    if (showProject) setDetailProject(activeProject)
+    if (showPortal) setPortalRequest(portalActive)
+    else if (showProject) setDetailProject(activeProject)
     else if (showAbout) setAboutOpen(true)
   }
 
@@ -72,7 +80,13 @@ export default function InteractHint() {
         color: '#fff',
         fontFamily: 'inherit',
       }}>E</kbd>
-      <span>{showProject ? <>View <strong style={{ color: '#fff' }}>{activeProject?.name ?? ''}</strong></> : <strong style={{ color: '#fff' }}>About Me</strong>}</span>
+      <span>{
+        showPortal
+          ? <strong style={{ color: '#fff' }}>{portalActive === 'descend' ? 'Descend to lower floor' : 'Ascend to top floor'}</strong>
+          : showProject
+            ? <>View <strong style={{ color: '#fff' }}>{activeProject?.name ?? ''}</strong></>
+            : <strong style={{ color: '#fff' }}>About Me</strong>
+      }</span>
     </div>
   )
 }

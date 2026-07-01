@@ -8,6 +8,7 @@ import ProfilePanel from './components/project/ProfilePanel'
 import InteractHint from './components/interaction/InteractHint'
 import IntroOverlay from './components/ui/IntroOverlay'
 import LoadingScreen from './components/ui/LoadingScreen'
+import TransitionVeil from './components/ui/TransitionVeil'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -18,6 +19,7 @@ createRoot(document.getElementById('root')).render(
       <InteractHint />
       <IntroOverlay />
       <LoadingScreen />
+      <TransitionVeil />
     </>
   </StrictMode>
 )

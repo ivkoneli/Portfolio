@@ -197,6 +197,9 @@ function CameraFollow() {
 }
 
 export default function Scene() {
+  // Remount the board (floor + islands + pillars) when the floor swaps so every
+  // LAYOUT/PROJECTS-derived memo recomputes against the now-active level.
+  const currentLevel = useGameStore(s => s.currentLevel)
   return (
     <Canvas shadows dpr={[1, 2]}>
       <color attach="background" args={['#000000']} />
@@ -227,10 +230,10 @@ export default function Scene() {
       </Environment>
 
       <Suspense fallback={null}>
-        <Grid />
+        <Grid key={currentLevel} />
       </Suspense>
       <Cube />
-      <DepthPillars />
+      <DepthPillars key={currentLevel} />
       <VolumetricFog />
 
       <fog attach="fog" args={['#000000', 26, 60]} />

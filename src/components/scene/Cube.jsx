@@ -5,8 +5,8 @@ import { Edges } from '@react-three/drei'
 import useGameStore from '../../store/gameStore'
 import useKeyboard from '../../hooks/useKeyboard'
 import { playRoll } from '../../audio/sound'
-import { LAYOUT, tileToWorld, CUBE_START, findPath, isWalkable } from '../../data/layout'
-import { findProjectAtTile } from '../../data/projects'
+import { LAYOUT, tileToWorld, CUBE_START, PORTAL, findPath, isWalkable, setActiveLevel } from '../../data/layout'
+import { findProjectAtTile, setActiveProjectsLevel } from '../../data/projects'
 
 const GLOW_COLOR = '#c084fc'
 
@@ -14,6 +14,12 @@ const GLOW_COLOR = '#c084fc'
 const TILE_Y    = 0.275   // top face of a tile (tile height 0.1, centered at y=0)
 const CUBE_HALF = 0.5    // half of the 1×1×1 cube
 const CUBE_CY   = TILE_Y + CUBE_HALF  // cube centre height = 0.55
+
+// Level-transition motion (world units), applied as an OUTER y-offset so it
+// composes with the roll springs. Fall down into the fog / climb up out of it,
+// then — after the board swaps behind the veil — drop onto the arrival tile.
+const FALL_DEPTH  = 16    // how far below the floor the cube falls (descend)
+const RISE_HEIGHT = 13    // how far up it climbs (ascend) / drops in from (arrival)
 
 // Stable starting world position (computed once, never changes)
 const [SX, , SZ] = tileToWorld(CUBE_START.col, CUBE_START.row)
@@ -24,6 +30,7 @@ export default function Cube() {
   const setCubePos       = useGameStore(s => s.setCubePos)
   const setActiveProject = useGameStore(s => s.setActiveProject)
   const moveTarget       = useGameStore(s => s.moveTarget)
+  const portalRequest    = useGameStore(s => s.portalRequest)
   const pendingMove      = useRef(null)   // buffers at most 1 keypress during animation
   const pathQueue        = useRef([])     // remaining click-to-move steps
   const bobRef           = useRef()       // idle float wrapper (y offset only)
@@ -33,6 +40,15 @@ export default function Cube() {
     scale: [1, 1, 1],
     config: { tension: 360, friction: 11 },
   }))
+
+  // Outer vertical offset used ONLY by the level transition (fall / climb /
+  // drop-in). Stays 0 during normal play so the roll springs are untouched.
+  const [descent, descentApi] = useSpring(() => ({ fallY: 0 }))
+
+  // Dedicated spin for the ascend "launch flip" — kept SEPARATE from the roll
+  // spring so its one-off config never becomes the roll's default (that would
+  // slow every subsequent roll).
+  const [flip, flipApi] = useSpring(() => ({ spin: 0 }))
 
   // react-spring manages ALL transform state.
   // api.set()   → instant jump  (no animation, used for position/offset resets)
@@ -143,6 +159,83 @@ export default function Cube() {
     })
   }, [api, squashApi, setCubePos, setIsAnimating, setActiveProject])
 
+  // ── Level transition: fall through the hatch / climb the staircase ──────────
+  // The board data swaps at the midpoint (masked by the veil), then the cube
+  // drops onto the arrival tile — the SAME grid cell on both floors, so the
+  // camera never slides across the swap.
+  const runTransition = useCallback((type) => {
+    const st = useGameStore.getState()
+    st.setTransitioning(true)
+    st.setPortalActive(null)
+    st.setAboutActive(false)
+    setActiveProject(null)
+    setIsAnimating(true)
+    pathQueue.current = []
+    pendingMove.current = null
+    st.setMoveDest(null)
+    st.setPathTiles([])
+    playRoll()
+
+    const travelTo = type === 'descend' ? -FALL_DEPTH : RISE_HEIGHT
+    descentApi.start({
+      from:   { fallY: 0 },
+      to:     { fallY: travelTo },
+      config: { duration: 600, easing: t => t * t },   // ease-in: gathers speed
+      onRest: () => {
+        const nextLevel = type === 'descend' ? 1 : 0
+        setActiveLevel(nextLevel)
+        setActiveProjectsLevel(nextLevel)
+
+        // Snap the roll springs to the arrival tile (portal cell, both boards).
+        const [px, , pz] = tileToWorld(PORTAL.col, PORTAL.row)
+        api.set({ pivotPos: [px, CUBE_CY, pz], meshOffset: [0, 0, 0], rotation: [0, 0, 0] })
+        setCubePos({ ...PORTAL })
+        useGameStore.getState().setCurrentLevel(nextLevel)   // remounts the board under the veil
+
+        // Arrival differs by direction:
+        //   • descend → drop DOWN onto the new floor from above (accelerating).
+        //   • ascend  → the launch pad flings the cube UP: it rises from BELOW
+        //     the tile, overshoots (springy) to "hit" it, spins, then settles.
+        const arriveFrom = type === 'descend' ? RISE_HEIGHT : -RISE_HEIGHT
+        descentApi.set({ fallY: arriveFrom })
+        if (type === 'ascend') {
+          // One full flip as it's launched up through the tile (own spring).
+          flipApi.set({ spin: 0 })
+          flipApi.start({ from: { spin: 0 }, to: { spin: Math.PI * 2 },
+            config: { duration: 560, easing: t => 1 - Math.pow(1 - t, 3) } })
+        }
+        descentApi.start({
+          from:   { fallY: arriveFrom },
+          to:     { fallY: 0 },
+          config: type === 'descend'
+            ? { duration: 520, easing: t => t * t }   // drop in, accelerating
+            : { tension: 150, friction: 13 },         // rise from below, springy hit-and-settle
+          onRest: () => {
+            flipApi.set({ spin: 0 })                  // clear the flip (2π ≡ 0)
+            squashApi.start({ from: { scale: [1.14, 0.82, 1.14] }, to: { scale: [1, 1, 1] } })
+            playRoll()
+            setActiveProject(
+              LAYOUT[PORTAL.row][PORTAL.col] === 2
+                ? findProjectAtTile(PORTAL.col, PORTAL.row)
+                : null
+            )
+            setIsAnimating(false)
+            useGameStore.getState().setTransitioning(false)
+          },
+        })
+      },
+    })
+  }, [api, descentApi, flipApi, squashApi, setCubePos, setIsAnimating, setActiveProject])
+
+  // E on the portal fires a request; consume it once and run the transition.
+  useEffect(() => {
+    if (!portalRequest) return
+    const st = useGameStore.getState()
+    st.setPortalRequest(null)
+    if (st.transitioning) return
+    runTransition(portalRequest)
+  }, [portalRequest, runTransition])
+
   useKeyboard(move)
 
   // Idle float: gently bob the cube up/down when it isn't rolling.
@@ -173,18 +266,24 @@ export default function Cube() {
   }, [moveTarget, move])
 
   return (
-    <animated.group position={spring.pivotPos} rotation={spring.rotation}>
-      <animated.group position={spring.meshOffset}>
-        {/* bobRef adds the idle float; squash scales the cube on landing */}
-        <group ref={bobRef}>
-          <animated.mesh scale={squash.scale} castShadow>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshStandardMaterial color="#0a0818" roughness={0.55} metalness={0.05} envMapIntensity={0} />
-            <Edges color={GLOW_COLOR} lineWidth={3} />
-            {/* Light lives inside the mesh → always at cube centre, survives the roll */}
-            <pointLight color={GLOW_COLOR} intensity={5} distance={7} decay={2} />
-          </animated.mesh>
-        </group>
+    // Outer group: the level-transition vertical offset (0 during normal play).
+    <animated.group position={descent.fallY.to(y => [0, y, 0])}>
+      <animated.group position={spring.pivotPos} rotation={spring.rotation}>
+        <animated.group position={spring.meshOffset}>
+          {/* flip = the one-off ascend launch spin (around the cube centre) */}
+          <animated.group rotation={flip.spin.to(s => [s, 0, 0])}>
+          {/* bobRef adds the idle float; squash scales the cube on landing */}
+          <group ref={bobRef}>
+            <animated.mesh scale={squash.scale} castShadow>
+              <boxGeometry args={[1, 1, 1]} />
+              <meshStandardMaterial color="#0a0818" roughness={0.55} metalness={0.05} envMapIntensity={0} />
+              <Edges color={GLOW_COLOR} lineWidth={3} />
+              {/* Light lives inside the mesh → always at cube centre, survives the roll */}
+              <pointLight color={GLOW_COLOR} intensity={5} distance={7} decay={2} />
+            </animated.mesh>
+          </group>
+          </animated.group>
+        </animated.group>
       </animated.group>
     </animated.group>
   )
