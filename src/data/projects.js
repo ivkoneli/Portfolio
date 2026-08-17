@@ -38,6 +38,13 @@ import pgo4 from '../assets/projects/pokemon-go/pgo4.jpg'
 import pgo5 from '../assets/projects/pokemon-go/pgo5.jpg'
 import pgo6 from '../assets/projects/pokemon-go/pgo6.jpg'
 import pgo7 from '../assets/projects/pokemon-go/pgo7.jpg'
+import ls1 from '../assets/projects/lucky-slimes/LS1.png'
+import ls2 from '../assets/projects/lucky-slimes/LS2.png'
+import ls3 from '../assets/projects/lucky-slimes/LS3.png'
+import ls4 from '../assets/projects/lucky-slimes/ls4.png'
+import ls5 from '../assets/projects/lucky-slimes/LS5.png'
+import ls6 from '../assets/projects/lucky-slimes/LS6.png'
+import lsDaily from '../assets/projects/lucky-slimes/dailyrewards.png'
 import portfolio from '../assets/portfolio.png'
 
 // Build a full tile/card theme from a single base colour. Sections share a base
@@ -168,7 +175,7 @@ const PROJECTS_L0 = [
 
 // ============================================================
 //  LEVEL 2 PROJECTS  (the lower floor, reached through the hatch)
-//  TODO: add screenshots — both tiles currently fall back to the default image.
+//  TODO: add screenshots for CrowLogs — its tile falls back to the default image.
 // ============================================================
 const PROJECTS_L1 = [
   {
@@ -195,7 +202,7 @@ const PROJECTS_L1 = [
     description: 'A mobile idle-gacha RPG: tap a dice to roll heroes of escalating rarity, auto-battle through worlds, and grow a hex upgrade tree toward the 1-in-250,000 pull.',
     longDescription: "LuckySlimes is a mobile-first idle gacha RPG built in Unity 6 (URP 2D). You tap a dice to roll for heroes of escalating rarity — Common all the way up to a 1-in-250,000 Godly tier — and your best five form an auto-battling team that pushes through worlds made of stages, killing mobs and bosses for gold. Gold and progress feed a hexagonal upgrade tree (unlock a node and its neighbours open up) that boosts luck, damage, gold and respawn speed. Deep in the tree you unlock Ascension Shards: collect enough and you ascend — reset the run but keep your skills, start at double luck, and unlock even rarer hero tiers. The fantasy is 'one more roll' — every tap might be the big pull.",
     tech: ['Unity 6', 'C#', 'URP 2D', 'Mobile'],
-    images: [],
+    images: [ls1, ls2, ls3, ls4, ls5, ls6, lsDaily],
     tileOrigin: PROJECT_ORIGINS_L1.luckyslimes,
     theme: makeTheme('#84cc16'),   // lime — slime
   },
