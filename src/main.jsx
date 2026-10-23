@@ -1,3 +1,4 @@
+import { bindDeepLink } from './deepLink'   // must run first: sets the spawn tile for /<Project> links
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
@@ -9,6 +10,9 @@ import InteractHint from './components/interaction/InteractHint'
 import IntroOverlay from './components/ui/IntroOverlay'
 import LoadingScreen from './components/ui/LoadingScreen'
 import TransitionVeil from './components/ui/TransitionVeil'
+import useGameStore from './store/gameStore'
+
+bindDeepLink(useGameStore)
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

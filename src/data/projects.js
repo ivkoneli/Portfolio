@@ -202,14 +202,14 @@ const PROJECTS_L1 = [
     description: 'A mobile idle-gacha RPG: tap a dice to roll heroes of escalating rarity, auto-battle through worlds, and grow a hex upgrade tree toward the 1-in-250,000 pull.',
     longDescription: "LuckySlimes is a mobile-first idle gacha RPG built in Unity 6 (URP 2D). You tap a dice to roll for heroes of escalating rarity — Common all the way up to a 1-in-250,000 Godly tier — and your best five form an auto-battling team that pushes through worlds made of stages, killing mobs and bosses for gold. Gold and progress feed a hexagonal upgrade tree (unlock a node and its neighbours open up) that boosts luck, damage, gold and respawn speed. Deep in the tree you unlock Ascension Shards: collect enough and you ascend — reset the run but keep your skills, start at double luck, and unlock even rarer hero tiers. The fantasy is 'one more roll' — every tap might be the big pull.",
     tech: ['Unity 6', 'C#', 'URP 2D', 'Mobile'],
-    images: [ls1, ls2, ls3, ls4, ls5, ls6, lsDaily],
+    images: [ls2, ls1, ls3, ls4, ls5, ls6, lsDaily],
     tileOrigin: PROJECT_ORIGINS_L1.luckyslimes,
     theme: makeTheme('#84cc16'),   // lime — slime
   },
 ]
 
 // The active project set swaps with the level (see layout.setActiveLevel).
-const PROJECTS_BY_LEVEL = [PROJECTS_L0, PROJECTS_L1]
+export const PROJECTS_BY_LEVEL = [PROJECTS_L0, PROJECTS_L1]
 export let PROJECTS = PROJECTS_L0
 export function setActiveProjectsLevel(n) { PROJECTS = PROJECTS_BY_LEVEL[n] }
 
